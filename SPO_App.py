@@ -251,3 +251,43 @@ with col2:
 with col3:
     st.plotly_chart(create_gauge("Rejection Rate", rejection_rate, 3, 50), use_container_width=True)
     st.plotly_chart(create_gauge("Lead Time", lead_time, 7, 30), use_container_width=True)    
+st.divider()
+
+# ROI Projection Calculator
+st.header("💰 ROI Projection Calculator")
+st.write("Enter your plant's financial details to see the projected financial impact of improvements")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    annual_revenue = st.number_input("Annual Revenue ($)", min_value=0, value=1000000, step=10000)
+    num_workers = st.number_input("Number of Workers", min_value=1, value=50, step=1)
+    avg_worker_salary = st.number_input("Average Worker Salary ($/year)", min_value=0, value=30000, step=1000)
+
+with col2:
+    waste_cost = st.number_input("Annual Waste Cost ($)", min_value=0, value=50000, step=1000)
+    downtime_cost = st.number_input("Annual Downtime Cost ($)", min_value=0, value=30000, step=1000)
+    rejection_cost = st.number_input("Annual Rejection Cost ($)", min_value=0, value=20000, step=1000)
+
+# Calculate projected savings
+efficiency_savings = annual_revenue * (efficiency_improvement / 100)
+manpower_savings = num_workers * avg_worker_salary * (manpower_improvement / 100)
+waste_savings = waste_cost * (waste_improvement / 100)
+rejection_savings = rejection_cost * (rejection_improvement / 100)
+
+total_savings = efficiency_savings + manpower_savings + waste_savings + rejection_savings
+
+st.subheader("Projected Annual Savings")
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.metric("Efficiency Savings", f"${efficiency_savings:,.0f}")
+    st.metric("Manpower Savings", f"${manpower_savings:,.0f}")
+
+with col2:
+    st.metric("Waste Savings", f"${waste_savings:,.0f}")
+    st.metric("Rejection Savings", f"${rejection_savings:,.0f}")
+
+with col3:
+    st.metric("💰 Total Annual Savings", f"${total_savings:,.0f}", 
+              delta=f"+${total_savings:,.0f}")    
