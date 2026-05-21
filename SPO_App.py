@@ -291,3 +291,48 @@ with col2:
 with col3:
     st.metric("💰 Total Annual Savings", f"${total_savings:,.0f}", 
               delta=f"+${total_savings:,.0f}")    
+st.divider()
+
+# PFMEA Module
+st.header("⚠️ PFMEA Module")
+st.write("Process Failure Mode and Effects Analysis — Identify and assess potential failures in your process")
+
+st.subheader("Add a Process Step")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    process_step = st.text_input("Process Step", placeholder="e.g. Assembly, Welding, Painting")
+    failure_mode = st.text_input("Potential Failure Mode", placeholder="e.g. Incorrect assembly, Weld crack")
+    failure_effect = st.text_input("Effect of Failure", placeholder="e.g. Product defect, Safety hazard")
+
+with col2:
+    severity = st.slider("Severity (1-10)", 1, 10, 5)
+    occurrence = st.slider("Occurrence (1-10)", 1, 10, 5)
+    detection = st.slider("Detection (1-10)", 1, 10, 5)
+
+# Calculate RPN
+rpn = severity * occurrence * detection
+
+st.subheader("Risk Assessment")
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    st.metric("Severity", severity)
+with col2:
+    st.metric("Occurrence", occurrence)
+with col3:
+    st.metric("Detection", detection)
+with col4:
+    st.metric("RPN Score", rpn)
+
+# RPN Risk Level
+if rpn >= 200:
+    st.error(f"🚨 HIGH RISK — RPN of {rpn} requires immediate corrective action!")
+    st.warning("Recommended Action: Stop production and investigate immediately. Implement corrective measures before resuming.")
+elif rpn >= 100:
+    st.warning(f"⚠️ MEDIUM RISK — RPN of {rpn} requires attention and monitoring.")
+    st.info("Recommended Action: Develop a corrective action plan and implement within 30 days.")
+else:
+    st.success(f"✅ LOW RISK — RPN of {rpn} is acceptable. Continue monitoring.")
+    st.info("Recommended Action: Maintain current controls and monitor regularly.")    
