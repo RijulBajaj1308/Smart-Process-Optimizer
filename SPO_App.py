@@ -100,11 +100,26 @@ kpi_labels = {
 for i, (kpi, result) in enumerate(analysis.items()):
     col = [col1, col2, col3][i % 3]
     with col:
-        st.metric(
-            label=f"{status_colors[result['status']]} {kpi_labels[kpi]}",
-            value=f"{result['value']}",
-            delta=f"Benchmark: {result['benchmark']}"
-        )
+        if result['status'] == "Good":
+            color = "#00CC00"  # Green
+        elif result['status'] == "Needs Improvement":
+            color = "#FFD700"  # Yellow
+        else:
+            color = "#CC0000"  # Red
+
+        st.markdown(f"""
+            <div style="
+                background-color: #1a1a1a;
+                border: 2px solid {color};
+                border-radius: 10px;
+                padding: 15px;
+                margin: 5px 0;
+                text-align: center;">
+                <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{status_colors[result['status']]} {kpi_labels[kpi]}</p>
+                <p style="color: {color}; font-size: 2rem; font-weight: 800; margin: 5px 0;">{result['value']}</p>
+                <p style="color: #888888; font-size: 0.8rem; margin: 0;">Benchmark: {result['benchmark']}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
 st.divider()
 
@@ -336,3 +351,9 @@ elif rpn >= 100:
 else:
     st.success(f"✅ LOW RISK — RPN of {rpn} is acceptable. Continue monitoring.")
     st.info("Recommended Action: Maintain current controls and monitor regularly.")    
+# Load custom CSS
+def load_css():
+    with open("style.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+load_css()    

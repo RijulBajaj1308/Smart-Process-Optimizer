@@ -1,0 +1,21 @@
+.stApp {
+    background-color: #0a0a0a;
+}
+
+[data-testid="stSidebar"] {
+    background-color: #111111;
+    border-right: 2px solid #CC0000;
+}
+
+p, li, label {
+    color: #ffffff !important;
+}
+
+h1 {
+    color: #CC0000 !important;
+    font-weight: 800 !important;
+}
+
+h2, h3 {
+    color: #ffffff !important;
+}
