@@ -205,3 +205,49 @@ with col3:
     st.metric("Lead Time",
               f"{lead_time - lead_improvement} days",
               f"-{lead_improvement} days")
+st.divider()
+
+# Plotly Charts Section
+st.header("📈 Performance Charts")
+
+import plotly.graph_objects as go
+
+# KPI Gauge Charts
+st.subheader("KPI Gauges")
+col1, col2, col3 = st.columns(3)
+
+def create_gauge(title, value, benchmark, max_val):
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number+delta",
+        value=value,
+        delta={"reference": benchmark},
+        title={"text": title},
+        gauge={
+            "axis": {"range": [0, max_val]},
+            "bar": {"color": "darkred"},
+            "steps": [
+                {"range": [0, benchmark * 0.7], "color": "red"},
+                {"range": [benchmark * 0.7, benchmark], "color": "orange"},
+                {"range": [benchmark, max_val], "color": "green"}
+            ],
+            "threshold": {
+                "line": {"color": "white", "width": 4},
+                "thickness": 0.75,
+                "value": benchmark
+            }
+        }
+    ))
+    fig.update_layout(height=250, margin=dict(t=50, b=0, l=0, r=0))
+    return fig
+
+with col1:
+    st.plotly_chart(create_gauge("Efficiency Rate", efficiency_rate, 85, 100), use_container_width=True)
+    st.plotly_chart(create_gauge("ROI", roi, 15, 50), use_container_width=True)
+
+with col2:
+    st.plotly_chart(create_gauge("Manpower Utilization", manpower_utilization, 85, 100), use_container_width=True)
+    st.plotly_chart(create_gauge("Waste %", waste_percentage, 5, 50), use_container_width=True)
+
+with col3:
+    st.plotly_chart(create_gauge("Rejection Rate", rejection_rate, 3, 50), use_container_width=True)
+    st.plotly_chart(create_gauge("Lead Time", lead_time, 7, 30), use_container_width=True)    
