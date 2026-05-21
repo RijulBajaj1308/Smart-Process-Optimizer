@@ -1,5 +1,4 @@
 import streamlit as st
-import plotly.graph_objects as go
 
 # Page configuration
 st.set_page_config(
@@ -75,6 +74,7 @@ def analyze_kpis(kpi_data, benchmarks):
         }
     return results
 
+# Run analysis every time sliders change
 analysis = analyze_kpis(kpi_data, benchmarks)
 
 # KPI Status Section
@@ -108,7 +108,7 @@ for i, (kpi, result) in enumerate(analysis.items()):
 
 st.divider()
 
-# Root Cause and Recommendations
+# Root Cause and Recommendations - Updates with every slider change
 st.header("🔍 Root Causes and Recommendations")
 
 root_causes = []
@@ -142,17 +142,24 @@ if analysis["lead_time"]["status"] in ["Needs Improvement", "Critical"]:
     root_causes.append("High lead time: Possible supply chain delays, poor scheduling, or production bottlenecks")
     recommendations.append("Map the entire value stream to identify delays and implement pull based scheduling")
 
+# Display Root Causes and Recommendations side by side
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("Root Causes")
-    for cause in root_causes:
-        st.warning(cause)
+    if root_causes:
+        for cause in root_causes:
+            st.warning(cause)
+    else:
+        st.success("No critical root causes detected! Plant is performing well.")
 
 with col2:
     st.subheader("Recommendations")
-    for rec in recommendations:
-        st.info(rec)
+    if recommendations:
+        for rec in recommendations:
+            st.info(rec)
+    else:
+        st.success("No recommendations needed! Plant is performing at benchmark level.")
 
 st.divider()
 
@@ -176,7 +183,7 @@ st.subheader("Projected Results")
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric("Efficiency Rate", 
+    st.metric("Efficiency Rate",
               f"{efficiency_rate + efficiency_improvement}%",
               f"+{efficiency_improvement}%")
     st.metric("Manpower Utilization",
