@@ -1,17 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
 
-# Industry Specific Benchmarks for Manufacturing
-# Sources:
-# Automotive: Maruti Suzuki, Tata Motors, Mahindra annual reports
-# Electronics: Indian PLI scheme benchmarks
-# Food and Beverage: Indian FMCG standards (HUL, Nestle India, ITC)
-# Textile: Indian textile industry standards (Raymond, Arvind Mills)
-# General Manufacturing: Average Indian SME standards
-# Eco Friendly Packaging: UFlex Limited, ITC Packaging, SR Pulp benchmarks
-# Pulp and Paper: JK Paper, TNPL, Kuantum Papers benchmarks
-# Pharmaceutical: Sun Pharma, Cipla, Dr Reddy's, Aurobindo Pharma — ISPE benchmarking study
-
 manufacturing_benchmarks = {
     "Automotive": {
         "efficiency_rate": 85.000,
@@ -59,7 +48,6 @@ manufacturing_benchmarks = {
         "lead_time": 10.000
     },
     "Eco Friendly Packaging": {
-        # Based on UFlex Limited and ITC Packaging benchmarks
         "efficiency_rate": 80.000,
         "cycle_time": 30.000,
         "waste_percentage": 3.000,
@@ -69,7 +57,6 @@ manufacturing_benchmarks = {
         "lead_time": 8.000
     },
     "Pulp and Paper Manufacturing": {
-        # Based on JK Paper, TNPL, Kuantum Papers benchmarks
         "efficiency_rate": 72.000,
         "cycle_time": 45.000,
         "waste_percentage": 8.000,
@@ -79,8 +66,6 @@ manufacturing_benchmarks = {
         "lead_time": 12.000
     },
     "Pharmaceutical Manufacturing": {
-        # Based on Sun Pharma, Cipla, Dr Reddy's, Aurobindo Pharma standards
-        # ISPE benchmarking: top quartile pharma plants target 90%+ OEE and below 1% batch rejection
         "efficiency_rate": 90.000,
         "cycle_time": 15.000,
         "waste_percentage": 1.000,
@@ -88,6 +73,249 @@ manufacturing_benchmarks = {
         "manpower_utilization": 85.000,
         "rejection_rate": 1.000,
         "lead_time": 3.000
+    }
+}
+
+industry_insights = {
+    "Automotive": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in automotive manufacturing is typically caused by unplanned machine downtime, frequent model changeovers, or bottlenecks in stamping, welding or assembly lines",
+            "recommendation": "Implement Total Productive Maintenance (TPM) to reduce unplanned downtime and conduct SMED analysis to reduce changeover times between vehicle models"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in automotive is often caused by excessive material handling between stations, manual operations that could be automated, or unbalanced workloads across the assembly line",
+            "recommendation": "Conduct a detailed time and motion study across all assembly stations and implement line rebalancing to eliminate bottlenecks and reduce inter-station waiting time"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in automotive manufacturing is typically from overproduction due to push based scheduling, scrap from stamping and cutting operations, or rework from welding defects",
+            "recommendation": "Implement pull based production scheduling aligned with customer demand and introduce in-process quality checks at stamping and welding stations to catch defects early"
+        },
+        "roi": {
+            "root_cause": "Low ROI in automotive is often driven by high tooling and die maintenance costs, excess inventory of raw materials and WIP, or low throughput due to frequent line stoppages",
+            "recommendation": "Optimize tooling maintenance schedules using predictive maintenance data and implement just-in-time inventory management to reduce holding costs and improve cash flow"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in automotive lines is usually caused by poor line balancing where some operators are overloaded while others are idle, or excessive waiting time due to material shortages",
+            "recommendation": "Conduct a manpower efficiency study and rebalance operator tasks across stations using takt time analysis to ensure uniform workload distribution"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in automotive is typically caused by dimensional tolerance issues in stamping or casting, welding defects from incorrect parameters, or paint quality failures",
+            "recommendation": "Implement Statistical Process Control (SPC) at critical stamping and welding stations, establish proper welding parameter standards, and conduct regular gauge calibration"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in automotive is commonly caused by supplier delays for critical components, long queue times between production stages, or inefficient scheduling of production runs",
+            "recommendation": "Develop strategic supplier partnerships with buffer stock agreements for critical components and implement advanced production scheduling software to minimize inter-stage queuing"
+        }
+    },
+    "Electronics": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in electronics manufacturing is often caused by frequent component shortages on the SMT line, high rates of rework at PCB assembly, or equipment downtime on pick and place machines",
+            "recommendation": "Implement real time component inventory monitoring on the SMT line and establish preventive maintenance schedules for pick and place machines to minimize unplanned stoppages"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in electronics is typically caused by lengthy inspection and testing procedures, manual soldering operations that could be automated, or poor sequencing of PCB assembly steps",
+            "recommendation": "Invest in automated optical inspection (AOI) systems to speed up quality checks and review the PCB assembly sequence to minimize component handling and travel time"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in electronics manufacturing is commonly from solder paste that expires before use, components damaged during handling, or PCBs scrapped due to soldering defects",
+            "recommendation": "Implement first in first out (FIFO) material management for solder paste and sensitive components, and install ESD protection measures throughout the assembly area"
+        },
+        "roi": {
+            "root_cause": "Low ROI in electronics is often caused by high component costs due to poor procurement planning, excessive scrap from PCB failures, or low yield rates at final testing",
+            "recommendation": "Negotiate volume-based contracts with component suppliers and implement Design for Testability (DFT) principles to improve first pass yield rates at testing"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in electronics is typically caused by operators waiting for component replenishment, excessive time spent on manual inspection, or poor allocation of skilled technicians",
+            "recommendation": "Automate routine inspection tasks using AOI and assign skilled technicians specifically to complex rework and troubleshooting tasks rather than routine assembly"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in electronics is commonly caused by solder bridging or insufficient solder at reflow, ESD damage to sensitive components, or incorrect component placement by pick and place machines",
+            "recommendation": "Optimize solder paste printing parameters and reflow oven profiles, enforce strict ESD protocols throughout the facility, and calibrate pick and place machines regularly"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in electronics is often caused by long procurement lead times for imported components, extended testing and burn-in periods, or delays in regulatory certification for new products",
+            "recommendation": "Maintain strategic safety stock for long lead time components and streamline the testing process by implementing parallel testing protocols rather than sequential testing"
+        }
+    },
+    "Food and Beverage": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in food and beverage manufacturing is typically caused by frequent CIP cycles, lengthy sanitation procedures between product changeovers, or equipment downtime due to food buildup",
+            "recommendation": "Optimize CIP cycle parameters to reduce cleaning time without compromising hygiene standards and implement quick changeover procedures for product line switches"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in food and beverage is often caused by slow filling and packaging equipment, manual weighing and measuring operations, or bottlenecks at labeling and sealing stations",
+            "recommendation": "Audit filling and packaging line speeds against equipment rated capacity and implement automated weighing and dosing systems to replace manual operations"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in food manufacturing is commonly from overproduction beyond shelf life, product spillage during filling, ingredient losses during mixing, or products rejected due to weight or fill level variations",
+            "recommendation": "Implement demand-driven production scheduling to minimize overproduction and install precision filling equipment with automated weight checking to reduce giveaway and spillage"
+        },
+        "roi": {
+            "root_cause": "Low ROI in food and beverage is often driven by high raw material costs from poor yield management, energy intensive processing operations, or high disposal costs for food waste",
+            "recommendation": "Conduct a detailed ingredient yield analysis to identify loss points in the process and implement energy management systems to optimize heating, cooling and processing energy consumption"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in food manufacturing is typically caused by manual sorting and inspection operations, excessive sanitation time taking workers away from production, or poor scheduling of cleaning and production shifts",
+            "recommendation": "Implement automated sorting and vision inspection systems and schedule sanitation activities during planned downtime periods to maximize productive operator time"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in food and beverage is commonly caused by microbial contamination from inadequate sanitation, incorrect ingredient ratios due to manual dosing errors, or improper temperature control during processing",
+            "recommendation": "Strengthen HACCP controls at critical control points, implement automated ingredient dosing systems with load cell verification, and install continuous temperature monitoring throughout the process"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in food manufacturing is often caused by long raw material procurement cycles for seasonal ingredients, extended quality hold periods for microbiological testing, or poor production scheduling",
+            "recommendation": "Develop relationships with multiple suppliers for key seasonal ingredients and implement rapid microbiological testing methods to reduce quality hold times"
+        }
+    },
+    "Textile and Apparel": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in textile manufacturing is commonly caused by frequent yarn breakages on looms, high loom downtime due to poor maintenance, or excessive time lost to style changeovers on sewing lines",
+            "recommendation": "Implement a preventive maintenance program for looms and weaving machines and conduct SMED analysis on sewing line changeovers to reduce style change downtime"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in textile is often caused by manual bundle handling between sewing operations, long queues at bottleneck sewing stations, or slow ironing and finishing operations",
+            "recommendation": "Implement unit production system (UPS) to replace bundle system and eliminate inter-operation queuing, and invest in automated pressing and finishing equipment"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in textile manufacturing is typically from fabric cutting losses, yarn waste from loom stoppages, dye liquor disposal, and defective garments that cannot be reworked",
+            "recommendation": "Implement computer aided cutting (CAC) systems to optimize fabric marker efficiency and reduce cutting waste, and invest in dye liquor recycling systems"
+        },
+        "roi": {
+            "root_cause": "Low ROI in textile is often caused by high cost of yarn and fabric due to poor inventory management, energy intensive dyeing and finishing processes, or high rework costs from quality issues",
+            "recommendation": "Implement lean inventory management for raw materials and invest in energy efficient dyeing machines with liquor ratio optimization to reduce water and chemical consumption"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in textile is typically caused by poor line balancing on sewing lines, excessive non-productive time spent on material handling, or absenteeism causing line imbalance",
+            "recommendation": "Conduct time and motion studies on all sewing operations and rebalance the line based on operation standard minutes and ensure cross training of operators for flexibility"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in textile is commonly caused by weaving defects such as broken picks or float yarns, color variation between dye batches, or sewing defects such as skipped stitches and broken seams",
+            "recommendation": "Install online fabric inspection systems on looms to detect weaving defects in real time and implement strict dye recipe management with spectrophotometer verification for color consistency"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in textile is often caused by long yarn procurement lead times, extended dyeing and finishing processes, or poor production planning leading to rush orders disrupting schedules",
+            "recommendation": "Maintain strategic yarn inventory for key running styles and implement master production scheduling to sequence orders efficiently and minimize rush order disruptions"
+        }
+    },
+    "General Manufacturing": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency is typically caused by unplanned equipment downtime, poor line balancing, excessive changeover times, or material shortages causing production stoppages",
+            "recommendation": "Implement a preventive maintenance program and conduct line balancing analysis to distribute workload evenly across all production stations"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time is commonly caused by bottleneck stations with excessive workload, manual operations that slow the process, or poor workstation layout causing unnecessary movement",
+            "recommendation": "Conduct time and motion studies to identify bottlenecks and rebalance workloads, and review workstation layouts using 5S principles to minimize operator movement"
+        },
+        "waste_percentage": {
+            "root_cause": "High waste is often from overproduction, defective materials, unnecessary processing steps, or poor inventory management leading to material expiry or damage",
+            "recommendation": "Implement value stream mapping to identify and eliminate non-value-adding activities and establish a robust first-in-first-out material management system"
+        },
+        "roi": {
+            "root_cause": "Low ROI is commonly caused by high operational costs, excess inventory tying up capital, high rejection and rework costs, or underutilized production capacity",
+            "recommendation": "Focus on reducing the top 3 cost drivers through process optimization and implement capacity utilization tracking to identify and fill underutilized production time"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization is typically caused by poor task allocation, excessive idle time at certain stations, or workers performing non-productive activities such as searching for tools or materials",
+            "recommendation": "Conduct a manpower efficiency study and redistribute tasks based on operator capacity and implement 5S in the workplace to eliminate time wasted searching for tools and materials"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate is commonly caused by inadequate process controls, poor incoming material quality, operator errors due to insufficient training, or equipment that is out of calibration",
+            "recommendation": "Implement in-process quality checkpoints at critical stages, establish incoming quality inspection for raw materials, and ensure all measurement equipment is regularly calibrated"
+        },
+        "lead_time": {
+            "root_cause": "High lead time is often caused by poor production scheduling, long supplier lead times for critical materials, or excessive work-in-process inventory causing congestion on the production floor",
+            "recommendation": "Implement production scheduling software to optimize job sequencing and develop supplier partnerships with agreed delivery windows to reduce material waiting time"
+        }
+    },
+    "Eco Friendly Packaging": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in eco-friendly packaging is typically caused by inconsistent raw material quality such as bagasse or recycled pulp, frequent mold cleaning required due to material buildup, or equipment not optimized for sustainable materials",
+            "recommendation": "Establish strict incoming material quality standards for sustainable raw materials and implement regular mold cleaning schedules to prevent buildup that causes downtime"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in eco packaging is often caused by longer drying and curing times required for natural materials, slower forming speeds due to material viscosity, or manual trimming and finishing operations",
+            "recommendation": "Optimize drying parameters for natural materials through systematic experimentation and invest in automated trimming equipment to replace manual finishing operations"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in eco-friendly packaging is commonly from material losses during pulp preparation, off-specification products due to inconsistent material properties, or trimming waste from forming operations",
+            "recommendation": "Implement closed-loop pulp recycling to recover and reuse pulp waste from trimming operations and establish tighter incoming material specifications to reduce variability"
+        },
+        "roi": {
+            "root_cause": "Low ROI in eco packaging is often caused by higher raw material costs compared to conventional plastics, lower production speeds due to natural material properties, or high product rejection rates",
+            "recommendation": "Explore alternative sustainable raw material suppliers to optimize material costs and focus on improving first-pass yield to reduce the per-unit cost of production"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in eco packaging is typically caused by manual quality inspection of formed products, workers waiting during extended drying cycles, or poor scheduling of forming and drying operations",
+            "recommendation": "Implement automated vision systems for product quality inspection and schedule forming and drying operations to ensure continuous operator engagement throughout the shift"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in eco packaging is commonly caused by inconsistent wall thickness due to uneven pulp distribution in molds, surface defects from mold wear, or dimensional variations due to natural material shrinkage",
+            "recommendation": "Implement regular mold inspection and refurbishment programs and establish process controls for pulp consistency including concentration and temperature to minimize dimensional variation"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in eco packaging is often caused by long procurement lead times for certified sustainable raw materials, extended product testing requirements for new eco certifications, or seasonal availability of agricultural raw materials",
+            "recommendation": "Develop relationships with multiple certified sustainable material suppliers and maintain strategic safety stock for seasonal materials to ensure uninterrupted production"
+        }
+    },
+    "Pulp and Paper Manufacturing": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in pulp and paper is typically caused by paper machine breaks requiring rethreading, poor stock preparation consistency, or unplanned downtime of the recovery boiler or steam systems",
+            "recommendation": "Implement online monitoring of paper machine parameters to detect early signs of impending breaks and establish rigorous stock preparation quality controls to ensure consistent furnish"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in pulp and paper is commonly caused by slow paper machine speeds due to formation quality issues, extended drying section residence time, or slow winding and reel changeover operations",
+            "recommendation": "Optimize paper machine forming section parameters to improve formation quality at higher speeds and implement automatic reel change systems to minimize changeover time"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in pulp and paper is typically from paper broke during machine breaks, edge trim waste from slitting operations, reject rolls that do not meet specification, or chemical losses in the pulping process",
+            "recommendation": "Implement a broke pulper and repulping system to recover and reuse paper broke and establish closed-loop chemical recovery systems to minimize chemical losses"
+        },
+        "roi": {
+            "root_cause": "Low ROI in pulp and paper is often driven by high energy costs for steam and electricity, high chemical costs for pulping and bleaching, or low selling prices due to commodity market pressures",
+            "recommendation": "Conduct an energy audit to identify heat recovery opportunities and optimize chemical dosing using online analyzers to reduce chemical consumption while maintaining quality"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in pulp and paper is typically caused by operators spending excessive time managing machine breaks, poor coordination between pulping and papermaking shifts, or manual sampling and testing taking operators away from the machine",
+            "recommendation": "Install online quality sensors to reduce manual sampling frequency and improve shift coordination through structured handover protocols and shared real-time production dashboards"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in pulp and paper is commonly caused by basis weight variation from inconsistent headbox jet-to-wire ratio, moisture content variation in the drying section, or caliper variation from press section issues",
+            "recommendation": "Implement automatic basis weight and moisture control systems on the paper machine and establish regular press felt and wire conditioning schedules to maintain consistent sheet properties"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in pulp and paper is often caused by long wood or recycled fiber procurement cycles, extended quality testing requirements for specialty grades, or slow order-to-production scheduling",
+            "recommendation": "Develop long-term fiber supply agreements with multiple suppliers and implement grade change optimization to minimize machine downtime between different paper grades"
+        }
+    },
+    "Pharmaceutical Manufacturing": {
+        "efficiency_rate": {
+            "root_cause": "Low efficiency in pharmaceutical manufacturing is typically caused by lengthy batch record review and release processes, frequent equipment cleaning and validation between products, or unplanned equipment downtime requiring extensive requalification",
+            "recommendation": "Implement electronic batch records (EBR) to accelerate review and release processes and develop risk-based cleaning validation approaches to reduce cleaning time between products"
+        },
+        "cycle_time": {
+            "root_cause": "High cycle time in pharma manufacturing is commonly caused by lengthy in-process testing and quality holds, slow granulation or blending operations, or extended coating and drying times for solid dosage forms",
+            "recommendation": "Implement Process Analytical Technology (PAT) tools for real-time in-process quality monitoring to reduce testing hold times and optimize granulation and coating process parameters"
+        },
+        "waste_percentage": {
+            "root_cause": "Waste in pharmaceutical manufacturing is typically from batch failures due to out-of-specification results, API losses during granulation and blending, or expired materials due to poor inventory management",
+            "recommendation": "Implement real-time process monitoring using PAT to detect process deviations early and prevent batch failures, and strengthen material management systems to minimize expiry waste"
+        },
+        "roi": {
+            "root_cause": "Low ROI in pharma is often caused by high API costs due to poor yield management, extensive quality testing costs, high regulatory compliance overhead, or low capacity utilization due to frequent product changeovers",
+            "recommendation": "Focus on improving API yield through process optimization and implement a campaign manufacturing approach to group similar products and minimize changeover frequency"
+        },
+        "manpower_utilization": {
+            "root_cause": "Low manpower utilization in pharma is typically caused by operators spending excessive time on manual documentation, waiting for QC results before proceeding, or performing redundant checks required by outdated SOPs",
+            "recommendation": "Implement electronic batch records and laboratory information management systems (LIMS) to reduce documentation time and enable real-time data sharing between production and QC"
+        },
+        "rejection_rate": {
+            "root_cause": "High rejection rate in pharmaceutical manufacturing is commonly caused by GMP deviations during manufacturing, contamination from inadequate cleanroom controls, incorrect API potency from blending issues, or packaging defects affecting product integrity",
+            "recommendation": "Strengthen GMP training and compliance monitoring, enhance environmental monitoring in cleanrooms, implement in-line blend uniformity testing, and install automated packaging inspection systems"
+        },
+        "lead_time": {
+            "root_cause": "High lead time in pharma is often caused by long API procurement lead times from single-source suppliers, extended stability testing requirements for new batches, or slow regulatory approval processes for product releases",
+            "recommendation": "Dual-source critical APIs to reduce supply risk and lead time dependency and implement a rolling stability testing program to avoid batch release delays"
+        }
     }
 }
 
@@ -142,6 +370,7 @@ def calculate_priority_score(analysis):
 
 def show_manufacturing(industry, currency_symbol="$"):
     benchmarks = manufacturing_benchmarks[industry]
+    insights = industry_insights[industry]
 
     st.sidebar.title("Enter Your Plant KPIs")
     st.sidebar.divider()
@@ -251,45 +480,47 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Root Causes and Recommendations
+    # Custom Root Causes and Recommendations
     st.header("Root Causes and Recommendations")
+    st.caption(f"Customized analysis for {industry} industry")
+
     root_causes = []
     recommendations = []
     improvements = {}
 
     if analysis["efficiency_rate"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("Low efficiency: Possible machine downtime, poor line balancing, or excessive idle time")
-        recommendations.append("Conduct a full line balancing study to redistribute workload evenly across all stations")
+        root_causes.append(insights["efficiency_rate"]["root_cause"])
+        recommendations.append(insights["efficiency_rate"]["recommendation"])
         improvements["efficiency_rate"] = min(benchmarks["efficiency_rate"], efficiency_rate + 12)
 
     if analysis["cycle_time"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("High cycle time: Possible bottleneck at a specific station, unskilled labor, or poor workstation layout")
-        recommendations.append("Perform time studies at each station to identify the bottleneck and redistribute tasks")
+        root_causes.append(insights["cycle_time"]["root_cause"])
+        recommendations.append(insights["cycle_time"]["recommendation"])
         improvements["cycle_time"] = max(benchmarks["cycle_time"], cycle_time - 10)
 
     if analysis["waste_percentage"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("High waste: Possible overproduction, defective materials, or poor quality control")
-        recommendations.append("Implement a waste tracking system and investigate the top 3 sources of waste on the floor")
+        root_causes.append(insights["waste_percentage"]["root_cause"])
+        recommendations.append(insights["waste_percentage"]["recommendation"])
         improvements["waste_percentage"] = max(benchmarks["waste_percentage"], waste_percentage - 3)
 
     if analysis["roi"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("Low ROI: Possible high operational costs, low output, or high rejection rates")
-        recommendations.append("Focus on reducing operational costs by eliminating non value adding activities")
+        root_causes.append(insights["roi"]["root_cause"])
+        recommendations.append(insights["roi"]["recommendation"])
         improvements["roi"] = min(benchmarks["roi"], roi + 5)
 
     if analysis["manpower_utilization"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("Low manpower utilization: Possible poor task distribution, idle workers, or line imbalance")
-        recommendations.append("Reassign idle workers as floaters to support overloaded stations")
+        root_causes.append(insights["manpower_utilization"]["root_cause"])
+        recommendations.append(insights["manpower_utilization"]["recommendation"])
         improvements["manpower_utilization"] = min(benchmarks["manpower_utilization"], manpower_utilization + 15)
 
     if analysis["rejection_rate"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("High rejection rate: Possible quality control issues, defective raw materials, or operator errors")
-        recommendations.append("Conduct root cause analysis on top defect types and implement quality checkpoints")
+        root_causes.append(insights["rejection_rate"]["root_cause"])
+        recommendations.append(insights["rejection_rate"]["recommendation"])
         improvements["rejection_rate"] = max(benchmarks["rejection_rate"], rejection_rate - 3)
 
     if analysis["lead_time"]["status"] in ["Needs Improvement", "Critical"]:
-        root_causes.append("High lead time: Possible supply chain delays, poor scheduling, or production bottlenecks")
-        recommendations.append("Map the entire value stream to identify delays and implement pull based scheduling")
+        root_causes.append(insights["lead_time"]["root_cause"])
+        recommendations.append(insights["lead_time"]["recommendation"])
         improvements["lead_time"] = max(benchmarks["lead_time"], lead_time - 3)
 
     col1, col2 = st.columns(2)
@@ -448,7 +679,7 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     # ROI Calculator
     st.header("ROI Projection Calculator")
-    st.write(f"Enter your plant's financial details in {currency_symbol}")
+    st.write(f"Savings are automatically calculated based on SPO recommendations for {industry}")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -461,13 +692,19 @@ def show_manufacturing(industry, currency_symbol="$"):
         downtime_cost = st.number_input(f"Annual Downtime Cost ({currency_symbol})", min_value=0.000, value=30000.000, step=1000.000, format="%.3f")
         rejection_cost = st.number_input(f"Annual Rejection Cost ({currency_symbol})", min_value=0.000, value=20000.000, step=1000.000, format="%.3f")
 
-    efficiency_savings = annual_revenue * (efficiency_improvement / 100)
-    manpower_savings = num_workers * avg_worker_salary * (manpower_improvement / 100)
-    waste_savings = waste_cost * (waste_improvement / 100)
-    rejection_savings = rejection_cost * (rejection_improvement / 100)
+    # ROI uses projected improvements from Before vs After section
+    efficiency_gain = improvements.get("efficiency_rate", efficiency_rate) - efficiency_rate
+    manpower_gain = improvements.get("manpower_utilization", manpower_utilization) - manpower_utilization
+    waste_gain = waste_percentage - improvements.get("waste_percentage", waste_percentage)
+    rejection_gain = rejection_rate - improvements.get("rejection_rate", rejection_rate)
+
+    efficiency_savings = annual_revenue * (abs(efficiency_gain) / 100)
+    manpower_savings = num_workers * avg_worker_salary * (abs(manpower_gain) / 100)
+    waste_savings = waste_cost * (abs(waste_gain) / 100)
+    rejection_savings = rejection_cost * (abs(rejection_gain) / 100)
     total_savings = efficiency_savings + manpower_savings + waste_savings + rejection_savings
 
-    st.subheader("Projected Annual Savings")
+    st.subheader("Projected Annual Savings Based on SPO Recommendations")
     col1, col2, col3 = st.columns(3)
 
     with col1:
