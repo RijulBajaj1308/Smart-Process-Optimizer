@@ -12,404 +12,626 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-    * { font-family: 'Inter', sans-serif; }
-    .stApp { background-color: #080808; }
-    [data-testid="stSidebar"] {
-        background-color: #0f0f0f;
-        border-right: 1px solid #1a1a1a;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
-    /* ---- LANDING ---- */
-    .hero {
-        min-height: 95vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        padding: 80px 24px;
-        background:
-            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(204,0,0,0.12) 0%, transparent 60%),
-            linear-gradient(180deg, #080808 0%, #050505 100%);
-        position: relative;
-        overflow: hidden;
-    }
+:root {
+    --red: #E8001D;
+    --red-dim: rgba(232,0,29,0.12);
+    --red-glow: rgba(232,0,29,0.25);
+    --bg: #070708;
+    --surface: #0E0E10;
+    --surface2: #141416;
+    --border: #1C1C1F;
+    --border2: #242428;
+    --text: #F0F0F0;
+    --text-dim: #5A5A60;
+    --text-muted: #2C2C30;
+}
 
-    .hero::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background-image:
-            linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-        background-size: 64px 64px;
-    }
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.stApp { background: var(--bg) !important; }
+[data-testid="stSidebar"] {
+    background: var(--surface) !important;
+    border-right: 1px solid var(--border) !important;
+}
+[data-testid="stSidebarContent"] { padding-top: 24px !important; }
 
-    .hero::after {
-        content: '';
-        position: absolute;
-        bottom: 0; left: 0; right: 0;
-        height: 120px;
-        background: linear-gradient(to top, #080808, transparent);
-    }
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero-wrap {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 32px 100px;
+    overflow: hidden;
+    background: var(--bg);
+}
 
-    .hero > * { position: relative; z-index: 1; }
+/* Grid background */
+.hero-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.4;
+}
 
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: rgba(204,0,0,0.08);
-        border: 1px solid rgba(204,0,0,0.25);
-        color: #CC0000;
-        padding: 5px 14px;
-        border-radius: 100px;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        margin-bottom: 32px;
-    }
+/* Red glow from top */
+.hero-wrap::after {
+    content: '';
+    position: absolute;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 800px;
+    height: 600px;
+    background: radial-gradient(ellipse, rgba(232,0,29,0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
 
-    .badge-dot {
-        width: 6px; height: 6px;
-        background: #CC0000;
-        border-radius: 50%;
-        animation: pulse 2s infinite;
-    }
+/* Scanning line animation */
+.scan-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    animation: scan 4s ease-in-out infinite;
+    opacity: 0.5;
+    pointer-events: none;
+}
 
-    @keyframes pulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.3; }
-    }
+@keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 0.5; }
+    90% { opacity: 0.5; }
+    100% { top: 100%; opacity: 0; }
+}
 
-    .hero-title {
-        font-size: 5rem;
-        font-weight: 900;
-        color: #ffffff;
-        line-height: 1;
-        letter-spacing: -3px;
-        margin-bottom: 24px;
-    }
+/* Corner brackets */
+.corner {
+    position: absolute;
+    width: 40px; height: 40px;
+    border-color: var(--red);
+    border-style: solid;
+    opacity: 0.4;
+}
+.corner-tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
+.corner-tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
+.corner-bl { bottom: 24px; left: 24px; border-width: 0 0 2px 2px; }
+.corner-br { bottom: 24px; right: 24px; border-width: 0 2px 2px 0; }
 
-    .hero-title .red {
-        color: transparent;
-        background: linear-gradient(135deg, #CC0000, #ff4444);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
+.hero-content { position: relative; z-index: 2; }
 
-    .hero-sub {
-        font-size: 1.1rem;
-        color: #555;
-        max-width: 520px;
-        line-height: 1.75;
-        margin-bottom: 56px;
-        font-weight: 400;
-    }
+.system-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(232,0,29,0.06);
+    border: 1px solid rgba(232,0,29,0.2);
+    color: var(--red);
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 36px;
+}
 
-    .stats {
-        display: flex;
-        gap: 56px;
-        justify-content: center;
-        margin-bottom: 64px;
-        flex-wrap: wrap;
-    }
+.blink {
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: blink 1.2s step-end infinite;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
-    .stat { text-align: center; }
-    .stat-n { font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -1px; }
-    .stat-l { font-size: 0.7rem; color: #333; text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
+.hero-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 5.5rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 0.95;
+    letter-spacing: -4px;
+    margin-bottom: 28px;
+}
 
-    .feat-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        max-width: 720px;
-        margin: 0 auto 64px;
-    }
+.hero-title .accent {
+    display: block;
+    color: var(--red);
+    font-weight: 300;
+    letter-spacing: -2px;
+    font-size: 4.5rem;
+}
 
-    .feat {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid rgba(255,255,255,0.05);
-        border-radius: 10px;
-        padding: 16px;
-        text-align: left;
-    }
+.hero-body {
+    font-size: 1rem;
+    color: var(--text-dim);
+    max-width: 480px;
+    line-height: 1.75;
+    margin: 0 auto 52px;
+}
 
-    .feat-t { color: #fff; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; }
-    .feat-d { color: #383838; font-size: 0.76rem; line-height: 1.5; }
+.hero-metrics {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0 auto 60px;
+    max-width: 480px;
+}
 
-    /* ---- PROGRESS ---- */
-    .prog {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        padding: 32px 0 48px;
-    }
+.h-metric {
+    flex: 1;
+    padding: 18px 0;
+    border-right: 1px solid var(--border2);
+    text-align: center;
+}
+.h-metric:last-child { border-right: none; }
+.h-metric-n {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+}
+.h-metric-l {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+}
 
-    .ps {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-    }
+.feat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 660px;
+    margin: 0 auto 60px;
+}
 
-    .pc {
-        width: 34px; height: 34px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.78rem; font-weight: 700;
-    }
+.feat-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 16px;
+    text-align: left;
+}
 
-    .pc.done { background: #CC0000; color: #fff; }
-    .pc.curr { background: rgba(204,0,0,0.1); border: 1.5px solid #CC0000; color: #CC0000; }
-    .pc.todo { background: rgba(255,255,255,0.03); border: 1.5px solid #1a1a1a; color: #2a2a2a; }
-    .pl { font-size: 0.62rem; color: #2a2a2a; text-transform: uppercase; letter-spacing: 1px; }
-    .pl.curr { color: #CC0000; }
+.feat-item-t {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 3px;
+}
 
-    .pline {
-        width: 52px; height: 1px;
-        margin: 0 6px 20px;
-    }
-    .pline.done { background: #CC0000; }
-    .pline.todo { background: #1a1a1a; }
+.feat-item-d {
+    font-size: 0.71rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
 
-    /* ---- STEP HEADER ---- */
-    .step-hdr { text-align: center; margin-bottom: 40px; }
-    .step-tag { color: #CC0000; font-size: 0.7rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
-    .step-ttl { color: #fff; font-size: 1.9rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
-    .step-stl { color: #333; font-size: 0.9rem; }
+/* ══════════════════════════════════════
+   PROGRESS BAR
+══════════════════════════════════════ */
+.prog-track {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 0 52px;
+}
 
-    /* ---- OPTION CARDS ---- */
-    .card-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
-    .card-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 32px; }
-    .card-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 32px; }
+.prog-node { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 
-    .opt {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid #1a1a1a;
-        border-radius: 12px;
-        padding: 28px 20px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
+.prog-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+.prog-dot.done { background: var(--red); color: #fff; }
+.prog-dot.curr {
+    background: var(--red-dim);
+    border: 1.5px solid var(--red);
+    color: var(--red);
+    box-shadow: 0 0 12px var(--red-glow);
+}
+.prog-dot.todo {
+    background: var(--surface2);
+    border: 1.5px solid var(--border2);
+    color: var(--text-muted);
+}
 
-    .opt:hover {
-        border-color: #CC0000;
-        background: rgba(204,0,0,0.04);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(204,0,0,0.08);
-    }
+.prog-lbl { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
+.prog-lbl.curr { color: var(--red); }
 
-    .opt-title { color: #fff; font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-    .opt-desc { color: #333; font-size: 0.78rem; line-height: 1.5; }
+.prog-seg { width: 56px; height: 1px; margin: 0 8px 20px; }
+.prog-seg.done { background: var(--red); }
+.prog-seg.todo { background: var(--border2); }
 
-    .opt-sm {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid #1a1a1a;
-        border-radius: 10px;
-        padding: 18px 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.15s ease;
-    }
+/* ══════════════════════════════════════
+   STEP HEADER
+══════════════════════════════════════ */
+.step-header { text-align: center; margin-bottom: 44px; }
 
-    .opt-sm:hover {
-        border-color: #CC0000;
-        background: rgba(204,0,0,0.04);
-        transform: translateY(-1px);
-    }
+.step-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
 
-    .opt-sm-title { color: #fff; font-size: 0.85rem; font-weight: 600; }
+.step-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+}
 
-    /* ---- BUTTONS ---- */
-    .stButton button {
-        background: #CC0000 !important;
-        color: #fff !important;
-        border: none !important;
-        border-radius: 8px !important;
-        font-weight: 700 !important;
-        font-size: 0.9rem !important;
-        padding: 10px 24px !important;
-        transition: all 0.15s !important;
-        width: 100% !important;
-        letter-spacing: 0.3px !important;
-    }
+.step-sub { font-size: 0.88rem; color: var(--text-muted); }
 
-    .stButton button:hover {
-        background: #e60000 !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 16px rgba(204,0,0,0.3) !important;
-    }
+/* ══════════════════════════════════════
+   CARD BUTTONS
+   The entire button IS the card
+══════════════════════════════════════ */
+div[data-testid="stButton"] > button {
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
+    border-radius: 10px !important;
+    color: var(--text) !important;
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    padding: 32px 20px !important;
+    width: 100% !important;
+    height: auto !important;
+    white-space: pre-line !important;
+    line-height: 1.5 !important;
+    transition: all 0.18s ease !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    font-family: 'Inter', sans-serif !important;
+}
 
-    .back-btn button {
-        background: transparent !important;
-        border: 1px solid #1a1a1a !important;
-        color: #333 !important;
-        box-shadow: none !important;
-    }
+div[data-testid="stButton"] > button:hover {
+    border-color: var(--red) !important;
+    background: rgba(232,0,29,0.04) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 32px rgba(232,0,29,0.1), 0 0 0 1px var(--red) !important;
+    color: #fff !important;
+}
 
-    .back-btn button:hover {
-        border-color: #333 !important;
-        color: #666 !important;
-        transform: none !important;
-        box-shadow: none !important;
-    }
+/* Industry small cards */
+.ind-grid div[data-testid="stButton"] > button {
+    padding: 18px 12px !important;
+    font-size: 0.8rem !important;
+    border-radius: 8px !important;
+    font-weight: 500 !important;
+}
 
-    /* ---- INPUTS ---- */
-    .stNumberInput input, .stTextInput input {
-        background: #0f0f0f !important;
-        border: 1px solid #1a1a1a !important;
-        color: #fff !important;
-        border-radius: 8px !important;
-    }
+/* CTA / Get Started */
+.cta-btn div[data-testid="stButton"] > button {
+    background: var(--red) !important;
+    border-color: var(--red) !important;
+    border-radius: 6px !important;
+    padding: 14px 36px !important;
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 4px 20px rgba(232,0,29,0.3) !important;
+}
 
-    .stSelectbox > div > div {
-        background: #0f0f0f !important;
-        border: 1px solid #1a1a1a !important;
-        color: #fff !important;
-        border-radius: 8px !important;
-    }
+.cta-btn div[data-testid="stButton"] > button:hover {
+    background: #ff0020 !important;
+    border-color: #ff0020 !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 32px rgba(232,0,29,0.4) !important;
+}
 
-    /* ---- MISC ---- */
-    [data-testid="stMetricValue"] { color: #CC0000 !important; }
-    p, li { color: #aaaaaa !important; }
-    h1, h2, h3 { color: #ffffff !important; }
-    hr { border-color: #111 !important; }
+/* Back button */
+.back-btn div[data-testid="stButton"] > button {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-dim) !important;
+    padding: 10px 20px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+}
 
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #080808; }
-    ::-webkit-scrollbar-thumb { background: #CC0000; border-radius: 2px; }
+.back-btn div[data-testid="stButton"] > button:hover {
+    border-color: var(--border2) !important;
+    color: var(--text-dim) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* Sidebar start over */
+.sidebar-btn div[data-testid="stButton"] > button {
+    background: transparent !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-dim) !important;
+    padding: 9px 16px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+}
+
+.sidebar-btn div[data-testid="stButton"] > button:hover {
+    border-color: var(--red) !important;
+    color: var(--red) !important;
+    transform: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+}
+
+/* ══════════════════════════════════════
+   INPUTS
+══════════════════════════════════════ */
+.stNumberInput input, .stTextInput input {
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
+    color: var(--text) !important;
+    border-radius: 6px !important;
+    font-family: 'Inter', sans-serif !important;
+}
+
+.stNumberInput input:focus, .stTextInput input:focus {
+    border-color: var(--red) !important;
+    box-shadow: 0 0 0 2px var(--red-dim) !important;
+}
+
+.stSelectbox > div > div {
+    background: var(--surface) !important;
+    border: 1px solid var(--border2) !important;
+    color: var(--text) !important;
+    border-radius: 6px !important;
+}
+
+/* ══════════════════════════════════════
+   ANALYSIS PAGE HEADER
+══════════════════════════════════════ */
+.analysis-header {
+    padding: 20px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.analysis-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--red);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.analysis-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+}
+
+.analysis-meta {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 3px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* ══════════════════════════════════════
+   MISC
+══════════════════════════════════════ */
+[data-testid="stMetricValue"] { color: var(--red) !important; }
+p, li { color: #888888 !important; }
+h1, h2, h3, h4 { color: var(--text) !important; font-family: 'Space Grotesk', sans-serif !important; }
+hr { border-color: var(--border) !important; }
+
+.stCaption { color: var(--text-muted) !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.7rem !important; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+
+/* Slider */
+[data-testid="stSlider"] > div > div > div {
+    background: var(--red) !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# Session State
+# ── Session State ──
 def init_session():
-    defaults = {
+    for key, val in {
         "page": "landing",
         "category": None,
         "industry": None,
         "business_model": None,
         "currency_symbol": "$"
-    }
-    for key, val in defaults.items():
+    }.items():
         if key not in st.session_state:
             st.session_state[key] = val
 
 init_session()
 
-# Progress Bar
+# ── Progress Bar ──
 def show_progress(current):
-    steps = [("1", "Category"), ("2", "Industry"), ("3", "Model")]
-    html = '<div class="prog">'
+    steps = [("01", "Category"), ("02", "Industry"), ("03", "Model")]
+    html = '<div class="prog-track">'
     for i, (num, label) in enumerate(steps):
         n = i + 1
         if n < current:
-            pc = "done"
-            pl = ""
+            dc, lc = "done", ""
         elif n == current:
-            pc = "curr"
-            pl = "curr"
+            dc, lc = "curr", "curr"
         else:
-            pc = "todo"
-            pl = ""
-        html += f'<div class="ps"><div class="pc {pc}">{num}</div><div class="pl {pl}">{label}</div></div>'
+            dc, lc = "todo", ""
+        html += f'''<div class="prog-node">
+            <div class="prog-dot {dc}">{num}</div>
+            <div class="prog-lbl {lc}">{label}</div>
+        </div>'''
         if i < len(steps) - 1:
-            lc = "done" if n < current else "todo"
-            html += f'<div class="pline {lc}"></div>'
+            sc = "done" if n < current else "todo"
+            html += f'<div class="prog-seg {sc}"></div>'
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
-# ============================================================
+# ════════════════════════════════════════
 # LANDING
-# ============================================================
+# ════════════════════════════════════════
 if st.session_state.page == "landing":
-
     st.markdown("""
-    <div class="hero">
-        <div class="badge"><div class="badge-dot"></div>Decision Support Tool for India</div>
-        <div class="hero-title">Smart Process<br><span class="red">Optimizer</span></div>
-        <div class="hero-sub">
-            Enter your numbers. SPO tells you what is wrong, why it is wrong,
-            and exactly what to do — compared against real Indian industry benchmarks.
-        </div>
-        <div class="stats">
-            <div class="stat"><div class="stat-n">26</div><div class="stat-l">Industries</div></div>
-            <div class="stat"><div class="stat-n">3</div><div class="stat-l">Categories</div></div>
-            <div class="stat"><div class="stat-n">3</div><div class="stat-l">Currencies</div></div>
-            <div class="stat"><div class="stat-n">Free</div><div class="stat-l">Always</div></div>
-        </div>
-        <div class="feat-grid">
-            <div class="feat"><div class="feat-t">Benchmark Analysis</div><div class="feat-d">Compare against real Indian industry standards</div></div>
-            <div class="feat"><div class="feat-t">Root Cause Detection</div><div class="feat-d">Understand exactly what is causing your gaps</div></div>
-            <div class="feat"><div class="feat-t">Financial Impact</div><div class="feat-d">See how much money you could save</div></div>
-            <div class="feat"><div class="feat-t">Priority Actions</div><div class="feat-d">Know exactly what to fix first</div></div>
-            <div class="feat"><div class="feat-t">What-If Simulator</div><div class="feat-d">See projected improvements before acting</div></div>
-            <div class="feat"><div class="feat-t">Risk Assessment</div><div class="feat-d">Get an overall risk score for your operations</div></div>
+    <div class="hero-wrap">
+        <div class="scan-line"></div>
+        <div class="corner corner-tl"></div>
+        <div class="corner corner-tr"></div>
+        <div class="corner corner-bl"></div>
+        <div class="corner corner-br"></div>
+
+        <div class="hero-content">
+            <div class="system-tag">
+                <div class="blink"></div>
+                System Online &nbsp;|&nbsp; India Benchmark Database
+            </div>
+
+            <div class="hero-title">
+                Smart Process
+                <span class="accent">Optimizer</span>
+            </div>
+
+            <div class="hero-body">
+                Enter your numbers. SPO compares them against real Indian industry benchmarks,
+                identifies what is wrong, and tells you exactly what to fix.
+            </div>
+
+            <div class="hero-metrics">
+                <div class="h-metric">
+                    <div class="h-metric-n">26</div>
+                    <div class="h-metric-l">Industries</div>
+                </div>
+                <div class="h-metric">
+                    <div class="h-metric-n">3</div>
+                    <div class="h-metric-l">Categories</div>
+                </div>
+                <div class="h-metric">
+                    <div class="h-metric-n">INR</div>
+                    <div class="h-metric-l">India First</div>
+                </div>
+                <div class="h-metric">
+                    <div class="h-metric-n">Free</div>
+                    <div class="h-metric-l">Always</div>
+                </div>
+            </div>
+
+            <div class="feat-row">
+                <div class="feat-item">
+                    <div class="feat-item-t">Benchmark Analysis</div>
+                    <div class="feat-item-d">Real Indian industry standards</div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-item-t">Root Cause Detection</div>
+                    <div class="feat-item-d">Know exactly what is wrong</div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-item-t">Financial Impact</div>
+                    <div class="feat-item-d">See the money you are losing</div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-item-t">Priority Actions</div>
+                    <div class="feat-item-d">What to fix first</div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-item-t">What-If Simulator</div>
+                    <div class="feat-item-d">Project improvements before acting</div>
+                </div>
+                <div class="feat-item">
+                    <div class="feat-item-t">Risk Score</div>
+                    <div class="feat-item-d">Overall operational risk rating</div>
+                </div>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1.5, 1, 1.5])
+    col1, col2, col3 = st.columns([1.8, 1, 1.8])
     with col2:
+        st.markdown('<div class="cta-btn">', unsafe_allow_html=True)
         if st.button("Get Started", use_container_width=True):
             st.session_state.page = "category"
             st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
-# ============================================================
+# ════════════════════════════════════════
 # CATEGORY
-# ============================================================
+# ════════════════════════════════════════
 elif st.session_state.page == "category":
     show_progress(1)
     st.markdown("""
-    <div class="step-hdr">
-        <div class="step-tag">Step 1 of 3</div>
-        <div class="step-ttl">What type of business are you?</div>
-        <div class="step-stl">Select the category that best describes your operations</div>
+    <div class="step-header">
+        <div class="step-eyebrow">Step 01 of 03</div>
+        <div class="step-title">What type of business are you?</div>
+        <div class="step-sub">Click a card to continue</div>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="opt">', unsafe_allow_html=True)
-        st.markdown('<div class="opt-title">Manufacturing</div><div class="opt-desc">Automotive, Electronics, Food, Textile, Pharma and more</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        if st.button("Manufacturing", use_container_width=True):
+        if st.button(
+            "Manufacturing\n\nAutomotive · Electronics · Food · Textile · Pharma · Packaging",
+            use_container_width=True
+        ):
             st.session_state.category = "Manufacturing"
             st.session_state.page = "industry"
             st.rerun()
 
     with col2:
-        st.markdown('<div class="opt">', unsafe_allow_html=True)
-        st.markdown('<div class="opt-title">Distribution</div><div class="opt-desc">Warehouse, Cold Chain, E-commerce, Pharma and more</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        if st.button("Distribution", use_container_width=True):
+        if st.button(
+            "Distribution\n\nWarehouse · Cold Chain · E-commerce · Pharma · Automotive Parts",
+            use_container_width=True
+        ):
             st.session_state.category = "Distribution"
             st.session_state.page = "industry"
             st.rerun()
 
     with col3:
-        st.markdown('<div class="opt">', unsafe_allow_html=True)
-        st.markdown('<div class="opt-title">Supply Chain</div><div class="opt-desc">Automotive, Food, Electronics, Pharma and more</div>', unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-        if st.button("Supply Chain", use_container_width=True):
+        if st.button(
+            "Supply Chain\n\nAutomotive · Food · Electronics · Pharma · Textile · Packaging",
+            use_container_width=True
+        ):
             st.session_state.category = "Supply Chain"
             st.session_state.page = "industry"
             st.rerun()
 
-# ============================================================
+# ════════════════════════════════════════
 # INDUSTRY
-# ============================================================
+# ════════════════════════════════════════
 elif st.session_state.page == "industry":
     show_progress(2)
     st.markdown(f"""
-    <div class="step-hdr">
-        <div class="step-tag">Step 2 of 3</div>
-        <div class="step-ttl">What is your industry?</div>
-        <div class="step-stl">Select the industry that best matches your {st.session_state.category} business</div>
+    <div class="step-header">
+        <div class="step-eyebrow">Step 02 of 03 &nbsp;·&nbsp; {st.session_state.category}</div>
+        <div class="step-title">Select your industry</div>
+        <div class="step-sub">Click a card to continue</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -436,20 +658,20 @@ elif st.session_state.page == "industry":
             "Eco Friendly Packaging Supply Chain", "Pulp and Paper Supply Chain"
         ]
 
-    # Render industry cards in rows of 4
+    st.markdown('<div class="ind-grid">', unsafe_allow_html=True)
     for i in range(0, len(industries), 4):
         row = industries[i:i+4]
         cols = st.columns(len(row))
         for j, ind in enumerate(row):
             with cols[j]:
-                st.markdown(f'<div class="opt-sm"><div class="opt-sm-title">{ind}</div></div>', unsafe_allow_html=True)
                 if st.button(ind, key=f"ind_{i}_{j}", use_container_width=True):
                     st.session_state.industry = ind
                     st.session_state.page = "business_model"
                     st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
     st.write("")
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1, 5, 1])
     with col1:
         st.markdown('<div class="back-btn">', unsafe_allow_html=True)
         if st.button("Back", use_container_width=True):
@@ -457,43 +679,38 @@ elif st.session_state.page == "industry":
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ============================================================
+# ════════════════════════════════════════
 # BUSINESS MODEL
-# ============================================================
+# ════════════════════════════════════════
 elif st.session_state.page == "business_model":
     show_progress(3)
-    st.markdown("""
-    <div class="step-hdr">
-        <div class="step-tag">Step 3 of 3</div>
-        <div class="step-ttl">What is your business model?</div>
-        <div class="step-stl">How do you sell your products or services?</div>
+    st.markdown(f"""
+    <div class="step-header">
+        <div class="step-eyebrow">Step 03 of 03 &nbsp;·&nbsp; {st.session_state.industry}</div>
+        <div class="step-title">What is your business model?</div>
+        <div class="step-sub">Click a card to begin your analysis</div>
     </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="opt"><div class="opt-title">B2B</div><div class="opt-desc">You sell to other businesses</div></div>', unsafe_allow_html=True)
-        if st.button("B2B", use_container_width=True):
+        if st.button("B2B\n\nYou sell to other businesses", use_container_width=True):
             st.session_state.business_model = "B2B"
             st.session_state.page = "analysis"
             st.rerun()
-
     with col2:
-        st.markdown('<div class="opt"><div class="opt-title">B2C</div><div class="opt-desc">You sell directly to consumers</div></div>', unsafe_allow_html=True)
-        if st.button("B2C", use_container_width=True):
+        if st.button("B2C\n\nYou sell directly to consumers", use_container_width=True):
             st.session_state.business_model = "B2C"
             st.session_state.page = "analysis"
             st.rerun()
-
     with col3:
-        st.markdown('<div class="opt"><div class="opt-title">B2B2C</div><div class="opt-desc">You sell to businesses who sell to consumers</div></div>', unsafe_allow_html=True)
-        if st.button("B2B2C", use_container_width=True):
+        if st.button("B2B2C\n\nYou sell to businesses who sell to consumers", use_container_width=True):
             st.session_state.business_model = "B2B2C"
             st.session_state.page = "analysis"
             st.rerun()
 
     st.write("")
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1, 5, 1])
     with col1:
         st.markdown('<div class="back-btn">', unsafe_allow_html=True)
         if st.button("Back", use_container_width=True):
@@ -501,42 +718,50 @@ elif st.session_state.page == "business_model":
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-# ============================================================
+# ════════════════════════════════════════
 # ANALYSIS
-# ============================================================
+# ════════════════════════════════════════
 elif st.session_state.page == "analysis":
     st.markdown(f"""
-    <div style="padding: 16px 0 20px; border-bottom: 1px solid #111; margin-bottom: 28px;">
-        <div style="font-size: 0.7rem; color: #CC0000; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px;">Smart Process Optimizer</div>
-        <div style="font-size: 1.4rem; color: #fff; font-weight: 800; letter-spacing: -0.5px;">{st.session_state.industry}</div>
-        <div style="font-size: 0.78rem; color: #333; margin-top: 2px;">{st.session_state.category} &nbsp;|&nbsp; {st.session_state.business_model}</div>
+    <div class="analysis-header">
+        <div>
+            <div class="analysis-label">Smart Process Optimizer &nbsp;|&nbsp; Active Session</div>
+            <div class="analysis-title">{st.session_state.industry}</div>
+            <div class="analysis-meta">{st.session_state.category} &nbsp;/&nbsp; {st.session_state.business_model}</div>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar session info
+    # Sidebar
     st.sidebar.markdown(f"""
-    <div style="padding: 14px; background: rgba(204,0,0,0.06); border: 1px solid rgba(204,0,0,0.15); border-radius: 10px; margin-bottom: 16px;">
-        <div style="color: #CC0000; font-size: 0.65rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px;">Session</div>
-        <div style="color: #fff; font-size: 0.9rem; font-weight: 600;">{st.session_state.industry}</div>
-        <div style="color: #444; font-size: 0.78rem; margin-top: 2px;">{st.session_state.category}</div>
-        <div style="color: #444; font-size: 0.78rem;">{st.session_state.business_model}</div>
+    <div style="
+        padding: 16px;
+        background: rgba(232,0,29,0.04);
+        border: 1px solid rgba(232,0,29,0.12);
+        border-radius: 8px;
+        margin-bottom: 20px;
+    ">
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: #E8001D; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Active Session</div>
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; color: #F0F0F0;">{st.session_state.industry}</div>
+        <div style="font-size: 0.75rem; color: #3a3a3e; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">{st.session_state.category}</div>
+        <div style="font-size: 0.75rem; color: #3a3a3e; font-family: 'JetBrains Mono', monospace;">{st.session_state.business_model}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Currency selector
     currency_options = {"USD ($)": "$", "INR (₹)": "₹", "GBP (£)": "£"}
     selected_currency = st.sidebar.selectbox("Currency", list(currency_options.keys()), index=0)
     st.session_state.currency_symbol = currency_options[selected_currency]
 
     st.sidebar.divider()
 
-    if st.sidebar.button("Start Over"):
+    st.markdown('<div class="sidebar-btn">', unsafe_allow_html=True)
+    if st.sidebar.button("Start Over", use_container_width=True):
         for key in ["page", "category", "industry", "business_model", "currency_symbol"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-    # Load module
     if st.session_state.category == "Manufacturing":
         show_manufacturing(st.session_state.industry, st.session_state.currency_symbol)
     elif st.session_state.category == "Distribution":
