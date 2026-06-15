@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 from manufacturing import show_manufacturing
 from distribution import show_distribution
@@ -35,7 +36,7 @@ if not st.session_state.onboarded:
     """, unsafe_allow_html=True)
 
     st.divider()
-    st.markdown("<h2 style='text-align: center; color: #ffffff;'>Let's get started — tell us about your business</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #ffffff;'>Let us get started — tell us about your business</h2>", unsafe_allow_html=True)
     st.write("")
 
     st.subheader("Step 1 — What is your business category?")
@@ -55,6 +56,7 @@ if not st.session_state.onboarded:
         st.write("")
 
         st.subheader("Step 2 — What is your industry?")
+
         if st.session_state.category == "Manufacturing":
             industries = [
                 "Automotive",
@@ -67,29 +69,29 @@ if not st.session_state.onboarded:
                 "Pharmaceutical Manufacturing"
             ]
         elif st.session_state.category == "Distribution":
-    industries = [
-        "Warehouse and Distribution",
-        "Cold Chain Distribution",
-        "E-commerce Fulfillment",
-        "Pharmaceutical Distribution",
-        "Automotive Parts Distribution",
-        "Electronics Distribution",
-        "Food and Beverage Distribution",
-        "Textile and Apparel Distribution",
-        "Eco Friendly Packaging Distribution",
-        "Pulp and Paper Distribution"
-    ]
+            industries = [
+                "Warehouse and Distribution",
+                "Cold Chain Distribution",
+                "E-commerce Fulfillment",
+                "Pharmaceutical Distribution",
+                "Automotive Parts Distribution",
+                "Electronics Distribution",
+                "Food and Beverage Distribution",
+                "Textile and Apparel Distribution",
+                "Eco Friendly Packaging Distribution",
+                "Pulp and Paper Distribution"
+            ]
         else:
-    industries = [
-        "Automotive Supply Chain",
-        "Food and Beverage Supply Chain",
-        "Electronics Supply Chain",
-        "General Supply Chain",
-        "Pharmaceutical Supply Chain",
-        "Textile and Apparel Supply Chain",
-        "Eco Friendly Packaging Supply Chain",
-        "Pulp and Paper Supply Chain"
-    ]
+            industries = [
+                "Automotive Supply Chain",
+                "Food and Beverage Supply Chain",
+                "Electronics Supply Chain",
+                "General Supply Chain",
+                "Pharmaceutical Supply Chain",
+                "Textile and Apparel Supply Chain",
+                "Eco Friendly Packaging Supply Chain",
+                "Pulp and Paper Supply Chain"
+            ]
 
         industry = st.selectbox("Select your industry", industries)
         st.session_state.industry = industry
