@@ -34,11 +34,7 @@ st.markdown("""
     background: var(--surface) !important;
     border-right: 1px solid var(--border) !important;
 }
-[data-testid="stSidebarContent"] { padding-top: 24px !important; }
 
-/* ══════════════════════════════════════
-   HERO
-══════════════════════════════════════ */
 .hero-wrap {
     min-height: 100vh;
     position: relative;
@@ -52,7 +48,6 @@ st.markdown("""
     background: var(--bg);
 }
 
-/* Grid background */
 .hero-wrap::before {
     content: '';
     position: absolute;
@@ -64,7 +59,6 @@ st.markdown("""
     opacity: 0.4;
 }
 
-/* Red glow from top */
 .hero-wrap::after {
     content: '';
     position: absolute;
@@ -77,7 +71,6 @@ st.markdown("""
     pointer-events: none;
 }
 
-/* Scanning line animation */
 .scan-line {
     position: absolute;
     left: 0; right: 0;
@@ -86,6 +79,7 @@ st.markdown("""
     animation: scan 4s ease-in-out infinite;
     opacity: 0.5;
     pointer-events: none;
+    z-index: 1;
 }
 
 @keyframes scan {
@@ -95,13 +89,13 @@ st.markdown("""
     100% { top: 100%; opacity: 0; }
 }
 
-/* Corner brackets */
 .corner {
     position: absolute;
     width: 40px; height: 40px;
     border-color: var(--red);
     border-style: solid;
     opacity: 0.4;
+    z-index: 1;
 }
 .corner-tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
 .corner-tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
@@ -209,22 +203,9 @@ st.markdown("""
     text-align: left;
 }
 
-.feat-item-t {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text);
-    margin-bottom: 3px;
-}
+.feat-item-t { color: var(--text); font-size: 0.78rem; font-weight: 600; margin-bottom: 3px; }
+.feat-item-d { color: var(--text-muted); font-size: 0.71rem; line-height: 1.4; }
 
-.feat-item-d {
-    font-size: 0.71rem;
-    color: var(--text-muted);
-    line-height: 1.4;
-}
-
-/* ══════════════════════════════════════
-   PROGRESS BAR
-══════════════════════════════════════ */
 .prog-track {
     display: flex;
     align-items: center;
@@ -262,9 +243,6 @@ st.markdown("""
 .prog-seg.done { background: var(--red); }
 .prog-seg.todo { background: var(--border2); }
 
-/* ══════════════════════════════════════
-   STEP HEADER
-══════════════════════════════════════ */
 .step-header { text-align: center; margin-bottom: 44px; }
 
 .step-eyebrow {
@@ -287,10 +265,6 @@ st.markdown("""
 
 .step-sub { font-size: 0.88rem; color: var(--text-muted); }
 
-/* ══════════════════════════════════════
-   CARD BUTTONS
-   The entire button IS the card
-══════════════════════════════════════ */
 div[data-testid="stButton"] > button {
     background: var(--surface) !important;
     border: 1px solid var(--border2) !important;
@@ -317,15 +291,12 @@ div[data-testid="stButton"] > button:hover {
     color: #fff !important;
 }
 
-/* Industry small cards */
 .ind-grid div[data-testid="stButton"] > button {
     padding: 18px 12px !important;
     font-size: 0.8rem !important;
     border-radius: 8px !important;
-    font-weight: 500 !important;
 }
 
-/* CTA / Get Started */
 .cta-btn div[data-testid="stButton"] > button {
     background: var(--red) !important;
     border-color: var(--red) !important;
@@ -333,18 +304,15 @@ div[data-testid="stButton"] > button:hover {
     padding: 14px 36px !important;
     font-size: 0.9rem !important;
     font-weight: 600 !important;
-    letter-spacing: 0.5px !important;
     box-shadow: 0 4px 20px rgba(232,0,29,0.3) !important;
 }
 
 .cta-btn div[data-testid="stButton"] > button:hover {
     background: #ff0020 !important;
-    border-color: #ff0020 !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 32px rgba(232,0,29,0.4) !important;
 }
 
-/* Back button */
 .back-btn div[data-testid="stButton"] > button {
     background: transparent !important;
     border: 1px solid var(--border) !important;
@@ -362,7 +330,6 @@ div[data-testid="stButton"] > button:hover {
     background: transparent !important;
 }
 
-/* Sidebar start over */
 .sidebar-btn div[data-testid="stButton"] > button {
     background: transparent !important;
     border: 1px solid var(--border) !important;
@@ -380,20 +347,11 @@ div[data-testid="stButton"] > button:hover {
     background: transparent !important;
 }
 
-/* ══════════════════════════════════════
-   INPUTS
-══════════════════════════════════════ */
 .stNumberInput input, .stTextInput input {
     background: var(--surface) !important;
     border: 1px solid var(--border2) !important;
     color: var(--text) !important;
     border-radius: 6px !important;
-    font-family: 'Inter', sans-serif !important;
-}
-
-.stNumberInput input:focus, .stTextInput input:focus {
-    border-color: var(--red) !important;
-    box-shadow: 0 0 0 2px var(--red-dim) !important;
 }
 
 .stSelectbox > div > div {
@@ -403,16 +361,10 @@ div[data-testid="stButton"] > button:hover {
     border-radius: 6px !important;
 }
 
-/* ══════════════════════════════════════
-   ANALYSIS PAGE HEADER
-══════════════════════════════════════ */
 .analysis-header {
     padding: 20px 0 24px;
     border-bottom: 1px solid var(--border);
     margin-bottom: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .analysis-label {
@@ -439,28 +391,17 @@ div[data-testid="stButton"] > button:hover {
     font-family: 'JetBrains Mono', monospace;
 }
 
-/* ══════════════════════════════════════
-   MISC
-══════════════════════════════════════ */
 [data-testid="stMetricValue"] { color: var(--red) !important; }
 p, li { color: #888888 !important; }
 h1, h2, h3, h4 { color: var(--text) !important; font-family: 'Space Grotesk', sans-serif !important; }
 hr { border-color: var(--border) !important; }
 
-.stCaption { color: var(--text-muted) !important; font-family: 'JetBrains Mono', monospace !important; font-size: 0.7rem !important; }
-
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
-
-/* Slider */
-[data-testid="stSlider"] > div > div > div {
-    background: var(--red) !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session State ──
 def init_session():
     for key, val in {
         "page": "landing",
@@ -474,7 +415,6 @@ def init_session():
 
 init_session()
 
-# ── Progress Bar ──
 def show_progress(current):
     steps = [("01", "Category"), ("02", "Industry"), ("03", "Model")]
     html = '<div class="prog-track">'
@@ -486,10 +426,7 @@ def show_progress(current):
             dc, lc = "curr", "curr"
         else:
             dc, lc = "todo", ""
-        html += f'''<div class="prog-node">
-            <div class="prog-dot {dc}">{num}</div>
-            <div class="prog-lbl {lc}">{label}</div>
-        </div>'''
+        html += f'<div class="prog-node"><div class="prog-dot {dc}">{num}</div><div class="prog-lbl {lc}">{label}</div></div>'
         if i < len(steps) - 1:
             sc = "done" if n < current else "todo"
             html += f'<div class="prog-seg {sc}"></div>'
@@ -507,23 +444,19 @@ if st.session_state.page == "landing":
         <div class="corner corner-tr"></div>
         <div class="corner corner-bl"></div>
         <div class="corner corner-br"></div>
-
         <div class="hero-content">
             <div class="system-tag">
                 <div class="blink"></div>
                 System Online &nbsp;|&nbsp; India Benchmark Database
             </div>
-
             <div class="hero-title">
                 Smart Process
                 <span class="accent">Optimizer</span>
             </div>
-
             <div class="hero-body">
                 Enter your numbers. SPO compares them against real Indian industry benchmarks,
                 identifies what is wrong, and tells you exactly what to fix.
             </div>
-
             <div class="hero-metrics">
                 <div class="h-metric">
                     <div class="h-metric-n">26</div>
@@ -542,7 +475,6 @@ if st.session_state.page == "landing":
                     <div class="h-metric-l">Always</div>
                 </div>
             </div>
-
             <div class="feat-row">
                 <div class="feat-item">
                     <div class="feat-item-t">Benchmark Analysis</div>
@@ -596,28 +528,17 @@ elif st.session_state.page == "category":
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button(
-            "Manufacturing\n\nAutomotive · Electronics · Food · Textile · Pharma · Packaging",
-            use_container_width=True
-        ):
+        if st.button("Manufacturing\n\nAutomotive · Electronics · Food · Textile · Pharma · Packaging", use_container_width=True):
             st.session_state.category = "Manufacturing"
             st.session_state.page = "industry"
             st.rerun()
-
     with col2:
-        if st.button(
-            "Distribution\n\nWarehouse · Cold Chain · E-commerce · Pharma · Automotive Parts",
-            use_container_width=True
-        ):
+        if st.button("Distribution\n\nWarehouse · Cold Chain · E-commerce · Pharma · Automotive Parts", use_container_width=True):
             st.session_state.category = "Distribution"
             st.session_state.page = "industry"
             st.rerun()
-
     with col3:
-        if st.button(
-            "Supply Chain\n\nAutomotive · Food · Electronics · Pharma · Textile · Packaging",
-            use_container_width=True
-        ):
+        if st.button("Supply Chain\n\nAutomotive · Food · Electronics · Pharma · Textile · Packaging", use_container_width=True):
             st.session_state.category = "Supply Chain"
             st.session_state.page = "industry"
             st.rerun()
@@ -724,27 +645,18 @@ elif st.session_state.page == "business_model":
 elif st.session_state.page == "analysis":
     st.markdown(f"""
     <div class="analysis-header">
-        <div>
-            <div class="analysis-label">Smart Process Optimizer &nbsp;|&nbsp; Active Session</div>
-            <div class="analysis-title">{st.session_state.industry}</div>
-            <div class="analysis-meta">{st.session_state.category} &nbsp;/&nbsp; {st.session_state.business_model}</div>
-        </div>
+        <div class="analysis-label">Smart Process Optimizer &nbsp;|&nbsp; Active Session</div>
+        <div class="analysis-title">{st.session_state.industry}</div>
+        <div class="analysis-meta">{st.session_state.category} &nbsp;/&nbsp; {st.session_state.business_model}</div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Sidebar
     st.sidebar.markdown(f"""
-    <div style="
-        padding: 16px;
-        background: rgba(232,0,29,0.04);
-        border: 1px solid rgba(232,0,29,0.12);
-        border-radius: 8px;
-        margin-bottom: 20px;
-    ">
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: #E8001D; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;">Active Session</div>
-        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem; font-weight: 600; color: #F0F0F0;">{st.session_state.industry}</div>
-        <div style="font-size: 0.75rem; color: #3a3a3e; margin-top: 4px; font-family: 'JetBrains Mono', monospace;">{st.session_state.category}</div>
-        <div style="font-size: 0.75rem; color: #3a3a3e; font-family: 'JetBrains Mono', monospace;">{st.session_state.business_model}</div>
+    <div style="padding:16px;background:rgba(232,0,29,0.04);border:1px solid rgba(232,0,29,0.12);border-radius:8px;margin-bottom:20px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:#E8001D;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Active Session</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:600;color:#F0F0F0;">{st.session_state.industry}</div>
+        <div style="font-size:0.75rem;color:#3a3a3e;margin-top:4px;font-family:'JetBrains Mono',monospace;">{st.session_state.category}</div>
+        <div style="font-size:0.75rem;color:#3a3a3e;font-family:'JetBrains Mono',monospace;">{st.session_state.business_model}</div>
     </div>
     """, unsafe_allow_html=True)
 
