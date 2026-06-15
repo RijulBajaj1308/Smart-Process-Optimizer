@@ -67,20 +67,29 @@ if not st.session_state.onboarded:
                 "Pharmaceutical Manufacturing"
             ]
         elif st.session_state.category == "Distribution":
-            industries = [
-                "Warehouse and Distribution",
-                "Cold Chain Distribution",
-                "E-commerce Fulfillment",
-                "Pharmaceutical Distribution"
-            ]
+    industries = [
+        "Warehouse and Distribution",
+        "Cold Chain Distribution",
+        "E-commerce Fulfillment",
+        "Pharmaceutical Distribution",
+        "Automotive Parts Distribution",
+        "Electronics Distribution",
+        "Food and Beverage Distribution",
+        "Textile and Apparel Distribution",
+        "Eco Friendly Packaging Distribution",
+        "Pulp and Paper Distribution"
+    ]
         else:
-            industries = [
-                "Automotive Supply Chain",
-                "Food and Beverage Supply Chain",
-                "Electronics Supply Chain",
-                "General Supply Chain",
-                "Pharmaceutical Supply Chain"
-            ]
+    industries = [
+        "Automotive Supply Chain",
+        "Food and Beverage Supply Chain",
+        "Electronics Supply Chain",
+        "General Supply Chain",
+        "Pharmaceutical Supply Chain",
+        "Textile and Apparel Supply Chain",
+        "Eco Friendly Packaging Supply Chain",
+        "Pulp and Paper Supply Chain"
+    ]
 
         industry = st.selectbox("Select your industry", industries)
         st.session_state.industry = industry
