@@ -3,6 +3,7 @@ import streamlit as st
 from manufacturing import show_manufacturing
 from distribution import show_distribution
 from supply_chain import show_supply_chain
+from manufacturing_deep import show_manufacturing_deep
 
 st.set_page_config(
     page_title="Smart Process Optimizer",
@@ -239,7 +240,7 @@ st.markdown("""
 .prog-lbl { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
 .prog-lbl.curr { color: var(--red); }
 
-.prog-seg { width: 56px; height: 1px; margin: 0 8px 20px; }
+.prog-seg { width: 40px; height: 1px; margin: 0 6px 20px; }
 .prog-seg.done { background: var(--red); }
 .prog-seg.todo { background: var(--border2); }
 
@@ -408,7 +409,8 @@ def init_session():
         "category": None,
         "industry": None,
         "business_model": None,
-        "currency_symbol": "$"
+        "currency_symbol": "$",
+        "analysis_type": None
     }.items():
         if key not in st.session_state:
             st.session_state[key] = val
@@ -416,7 +418,7 @@ def init_session():
 init_session()
 
 def show_progress(current):
-    steps = [("01", "Category"), ("02", "Industry"), ("03", "Model")]
+    steps = [("01", "Category"), ("02", "Industry"), ("03", "Model"), ("04", "Analysis")]
     html = '<div class="prog-track">'
     for i, (num, label) in enumerate(steps):
         n = i + 1
@@ -489,16 +491,16 @@ if st.session_state.page == "landing":
                     <div class="feat-item-d">See the money you are losing</div>
                 </div>
                 <div class="feat-item">
-                    <div class="feat-item-t">Priority Actions</div>
-                    <div class="feat-item-d">What to fix first</div>
+                    <div class="feat-item-t">Deep Analysis</div>
+                    <div class="feat-item-d">Bottleneck, OEE, Pareto, Manpower</div>
                 </div>
                 <div class="feat-item">
-                    <div class="feat-item-t">What-If Simulator</div>
-                    <div class="feat-item-d">Project improvements before acting</div>
+                    <div class="feat-item-t">30 Day Action Plan</div>
+                    <div class="feat-item-d">Structured plan to fix problems</div>
                 </div>
                 <div class="feat-item">
-                    <div class="feat-item-t">Risk Score</div>
-                    <div class="feat-item-d">Overall operational risk rating</div>
+                    <div class="feat-item-t">PDF Report</div>
+                    <div class="feat-item-d">Download and share your analysis</div>
                 </div>
             </div>
         </div>
@@ -520,7 +522,7 @@ elif st.session_state.page == "category":
     show_progress(1)
     st.markdown("""
     <div class="step-header">
-        <div class="step-eyebrow">Step 01 of 03</div>
+        <div class="step-eyebrow">Step 01 of 04</div>
         <div class="step-title">What type of business are you?</div>
         <div class="step-sub">Click a card to continue</div>
     </div>
@@ -550,7 +552,7 @@ elif st.session_state.page == "industry":
     show_progress(2)
     st.markdown(f"""
     <div class="step-header">
-        <div class="step-eyebrow">Step 02 of 03 &nbsp;·&nbsp; {st.session_state.category}</div>
+        <div class="step-eyebrow">Step 02 of 04 &nbsp;·&nbsp; {st.session_state.category}</div>
         <div class="step-title">Select your industry</div>
         <div class="step-sub">Click a card to continue</div>
     </div>
@@ -607,9 +609,9 @@ elif st.session_state.page == "business_model":
     show_progress(3)
     st.markdown(f"""
     <div class="step-header">
-        <div class="step-eyebrow">Step 03 of 03 &nbsp;·&nbsp; {st.session_state.industry}</div>
+        <div class="step-eyebrow">Step 03 of 04 &nbsp;·&nbsp; {st.session_state.industry}</div>
         <div class="step-title">What is your business model?</div>
-        <div class="step-sub">Click a card to begin your analysis</div>
+        <div class="step-sub">Click a card to continue</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -617,17 +619,17 @@ elif st.session_state.page == "business_model":
     with col1:
         if st.button("B2B\n\nYou sell to other businesses", use_container_width=True):
             st.session_state.business_model = "B2B"
-            st.session_state.page = "analysis"
+            st.session_state.page = "analysis_type"
             st.rerun()
     with col2:
         if st.button("B2C\n\nYou sell directly to consumers", use_container_width=True):
             st.session_state.business_model = "B2C"
-            st.session_state.page = "analysis"
+            st.session_state.page = "analysis_type"
             st.rerun()
     with col3:
         if st.button("B2B2C\n\nYou sell to businesses who sell to consumers", use_container_width=True):
             st.session_state.business_model = "B2B2C"
-            st.session_state.page = "analysis"
+            st.session_state.page = "analysis_type"
             st.rerun()
 
     st.write("")
@@ -640,12 +642,55 @@ elif st.session_state.page == "business_model":
         st.markdown('</div>', unsafe_allow_html=True)
 
 # ════════════════════════════════════════
+# ANALYSIS TYPE
+# ════════════════════════════════════════
+elif st.session_state.page == "analysis_type":
+    show_progress(4)
+    st.markdown(f"""
+    <div class="step-header">
+        <div class="step-eyebrow">Step 04 of 04 &nbsp;·&nbsp; {st.session_state.industry}</div>
+        <div class="step-title">Choose your analysis type</div>
+        <div class="step-sub">Quick Analysis for an overview — Deep Analysis to pinpoint exact problems</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Quick Analysis\n\nEnter summary performance numbers and get benchmark comparison, root causes, 30 day action plan and PDF report", use_container_width=True):
+            st.session_state.analysis_type = "Quick"
+            st.session_state.page = "analysis"
+            st.rerun()
+    with col2:
+        if st.session_state.category == "Manufacturing":
+            if st.button("Deep Analysis\n\nEnter detailed process data — identify your exact bottleneck, calculate OEE, run Defect Pareto and plan manpower", use_container_width=True):
+                st.session_state.analysis_type = "Deep"
+                st.session_state.page = "analysis"
+                st.rerun()
+        else:
+            st.markdown(f"""
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; border-radius: 10px; padding: 32px 20px; text-align: center; opacity: 0.4;">
+                <p style="color: #ffffff; font-size: 0.95rem; font-weight: 600; margin: 0 0 8px 0;">Deep Analysis</p>
+                <p style="color: #555555; font-size: 0.82rem; margin: 0;">Coming soon for {st.session_state.category}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.write("")
+    col1, col2, col3 = st.columns([1, 5, 1])
+    with col1:
+        st.markdown('<div class="back-btn">', unsafe_allow_html=True)
+        if st.button("Back", use_container_width=True):
+            st.session_state.page = "business_model"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+
+# ════════════════════════════════════════
 # ANALYSIS
 # ════════════════════════════════════════
 elif st.session_state.page == "analysis":
+    analysis_mode = st.session_state.get("analysis_type", "Quick")
     st.markdown(f"""
     <div class="analysis-header">
-        <div class="analysis-label">Smart Process Optimizer &nbsp;|&nbsp; Active Session</div>
+        <div class="analysis-label">Smart Process Optimizer &nbsp;|&nbsp; {analysis_mode} Analysis</div>
         <div class="analysis-title">{st.session_state.industry}</div>
         <div class="analysis-meta">{st.session_state.category} &nbsp;/&nbsp; {st.session_state.business_model}</div>
     </div>
@@ -656,7 +701,7 @@ elif st.session_state.page == "analysis":
         <div style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:#E8001D;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">Active Session</div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:0.95rem;font-weight:600;color:#F0F0F0;">{st.session_state.industry}</div>
         <div style="font-size:0.75rem;color:#3a3a3e;margin-top:4px;font-family:'JetBrains Mono',monospace;">{st.session_state.category}</div>
-        <div style="font-size:0.75rem;color:#3a3a3e;font-family:'JetBrains Mono',monospace;">{st.session_state.business_model}</div>
+        <div style="font-size:0.75rem;color:#3a3a3e;font-family:'JetBrains Mono',monospace;">{st.session_state.business_model} &nbsp;|&nbsp; {analysis_mode} Analysis</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -668,13 +713,15 @@ elif st.session_state.page == "analysis":
 
     st.markdown('<div class="sidebar-btn">', unsafe_allow_html=True)
     if st.sidebar.button("Start Over", use_container_width=True):
-        for key in ["page", "category", "industry", "business_model", "currency_symbol"]:
+        for key in ["page", "category", "industry", "business_model", "currency_symbol", "analysis_type"]:
             if key in st.session_state:
                 del st.session_state[key]
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.session_state.category == "Manufacturing":
+    if st.session_state.analysis_type == "Deep" and st.session_state.category == "Manufacturing":
+        show_manufacturing_deep(st.session_state.industry, st.session_state.currency_symbol)
+    elif st.session_state.category == "Manufacturing":
         show_manufacturing(st.session_state.industry, st.session_state.currency_symbol)
     elif st.session_state.category == "Distribution":
         show_distribution(st.session_state.industry, st.session_state.currency_symbol)

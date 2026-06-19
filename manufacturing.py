@@ -1,838 +1,566 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
 import plotly.graph_objects as go
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import inch
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_LEFT
-from datetime import datetime
-import io
+import plotly.express as px
+import pandas as pd
 
-manufacturing_benchmarks = {
-    "Automotive": {
-        "efficiency_rate": 85.000,
-        "cycle_time": 25.000,
-        "waste_percentage": 4.000,
-        "roi": 15.000,
-        "manpower_utilization": 85.000,
-        "rejection_rate": 2.000,
-        "lead_time": 7.000
-    },
-    "Electronics": {
-        "efficiency_rate": 82.000,
-        "cycle_time": 20.000,
-        "waste_percentage": 3.000,
-        "roi": 18.000,
-        "manpower_utilization": 82.000,
-        "rejection_rate": 2.000,
-        "lead_time": 5.000
-    },
-    "Food and Beverage": {
-        "efficiency_rate": 78.000,
-        "cycle_time": 20.000,
-        "waste_percentage": 2.000,
-        "roi": 12.000,
-        "manpower_utilization": 78.000,
-        "rejection_rate": 1.000,
-        "lead_time": 2.000
-    },
-    "Textile and Apparel": {
-        "efficiency_rate": 72.000,
-        "cycle_time": 40.000,
-        "waste_percentage": 8.000,
-        "roi": 8.000,
-        "manpower_utilization": 75.000,
-        "rejection_rate": 4.000,
-        "lead_time": 14.000
-    },
-    "General Manufacturing": {
-        "efficiency_rate": 75.000,
-        "cycle_time": 35.000,
-        "waste_percentage": 6.000,
-        "roi": 10.000,
-        "manpower_utilization": 78.000,
-        "rejection_rate": 3.000,
-        "lead_time": 10.000
-    },
-    "Eco Friendly Packaging": {
-        "efficiency_rate": 80.000,
-        "cycle_time": 30.000,
-        "waste_percentage": 3.000,
-        "roi": 10.000,
-        "manpower_utilization": 80.000,
-        "rejection_rate": 2.000,
-        "lead_time": 8.000
-    },
-    "Pulp and Paper Manufacturing": {
-        "efficiency_rate": 72.000,
-        "cycle_time": 45.000,
-        "waste_percentage": 8.000,
-        "roi": 8.000,
-        "manpower_utilization": 75.000,
-        "rejection_rate": 4.000,
-        "lead_time": 12.000
-    },
-    "Pharmaceutical Manufacturing": {
-        "efficiency_rate": 90.000,
-        "cycle_time": 15.000,
-        "waste_percentage": 1.000,
-        "roi": 20.000,
-        "manpower_utilization": 85.000,
-        "rejection_rate": 1.000,
-        "lead_time": 3.000
-    }
-}
+def show_manufacturing_deep(industry, currency_symbol="$"):
 
-performance_labels = {
-    "efficiency_rate": "Efficiency Rate (%)",
-    "cycle_time": "Cycle Time (mins)",
-    "waste_percentage": "Waste Percentage (%)",
-    "roi": "ROI (%)",
-    "manpower_utilization": "Manpower Utilization (%)",
-    "rejection_rate": "Rejection Rate (%)",
-    "lead_time": "Lead Time (days)"
-}
+    st.markdown("""
+    <div style="background: rgba(232,0,29,0.04); border: 1px solid rgba(232,0,29,0.15); border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
+        <p style="color: #E8001D; font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin: 0 0 4px 0;">Deep Analysis Mode</p>
+        <p style="color: #cccccc; font-size: 0.9rem; margin: 0;">Enter detailed process data to pinpoint exactly where your problems are and by how much they are costing you.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-def analyze_kpis(kpi_data, benchmarks):
-    results = {}
-    for kpi, value in kpi_data.items():
-        benchmark = benchmarks[kpi]
-        if kpi in ["efficiency_rate", "roi", "manpower_utilization"]:
-            gap = value - benchmark
-            if gap >= 0:
-                status = "Good"
-            elif gap >= -10:
-                status = "Needs Improvement"
-            else:
-                status = "Critical"
-        else:
-            gap = benchmark - value
-            if gap >= 0:
-                status = "Good"
-            elif gap >= -10:
-                status = "Needs Improvement"
-            else:
-                status = "Critical"
-        results[kpi] = {
-            "value": value,
-            "benchmark": benchmark,
-            "gap": abs(gap),
-            "status": status
-        }
-    return results
-
-def calculate_priority_score(analysis):
-    scores = {}
-    for kpi, result in analysis.items():
-        if result["status"] == "Critical":
-            scores[kpi] = result["gap"] * 3
-        elif result["status"] == "Needs Improvement":
-            scores[kpi] = result["gap"] * 1.5
-        else:
-            scores[kpi] = 0
-    return dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
-
-
-def generate_action_plan(analysis, performance_labels, recommendations):
-    critical_kpis = [(kpi, result) for kpi, result in analysis.items() if result["status"] == "Critical"]
-    improvement_kpis = [(kpi, result) for kpi, result in analysis.items() if result["status"] == "Needs Improvement"]
-    good_kpis = [(kpi, result) for kpi, result in analysis.items() if result["status"] == "Good"]
-
-    plan = {"week1": [], "week2": [], "week3": [], "week4": []}
-
-    for kpi, result in critical_kpis:
-        plan["week1"].append({
-            "metric": performance_labels.get(kpi, kpi),
-            "action": f"URGENT — {performance_labels.get(kpi, kpi)} is at {result['value']:.3f} against a benchmark of {result['benchmark']:.3f}. This is your most critical problem and needs immediate attention this week.",
-            "priority": "Critical"
-        })
-
-    if not critical_kpis and improvement_kpis:
-        kpi, result = improvement_kpis[0]
-        plan["week1"].append({
-            "action": f"Start with {performance_labels.get(kpi, kpi)} — currently {result['value']:.3f} vs benchmark {result['benchmark']:.3f}. This is your biggest gap.",
-            "priority": "Needs Improvement"
-        })
-
-    plan["week2"].append({"action": "Map your current process from start to finish and identify where time and materials are being lost", "priority": "Standard"})
-    for kpi, result in critical_kpis:
-        plan["week2"].append({"action": f"Conduct a detailed root cause analysis for {performance_labels.get(kpi, kpi)} — speak to floor workers and supervisors to understand what is actually happening", "priority": "Critical"})
-    for kpi, result in improvement_kpis[:2]:
-        plan["week2"].append({"action": f"Investigate {performance_labels.get(kpi, kpi)} — identify the top 3 contributing factors and rank them by impact", "priority": "Needs Improvement"})
-
-    for rec in recommendations[:3]:
-        plan["week3"].append({"action": rec, "priority": "Implementation"})
-    if not recommendations:
-        plan["week3"].append({"action": "Implement the process improvements identified during Week 2 investigation", "priority": "Implementation"})
-
-    plan["week4"].append({"action": "Re-enter all your performance numbers in SPO and compare against your Week 1 starting point", "priority": "Review"})
-    plan["week4"].append({"action": "Quantify the improvement — calculate how much output, quality or efficiency has improved in numbers", "priority": "Review"})
-    plan["week4"].append({"action": "Document what worked and what did not — this becomes your Standard Operating Procedure going forward", "priority": "Review"})
-    if good_kpis:
-        good_names = ", ".join([performance_labels.get(k, k) for k, r in good_kpis])
-        plan["week4"].append({"action": f"Maintain your strong performance in: {good_names} — do not let these slip while fixing other areas", "priority": "Maintain"})
-
-    return plan
-
-def generate_dynamic_insights(kpi, value, benchmark, gap, status):
-    if kpi == "efficiency_rate":
-        if status == "Critical":
-            cause = f"Your efficiency is {gap:.1f}% below the industry benchmark of {benchmark:.1f}%. You are losing more than 1 in every {round(100/gap):.0f} hours of productive time. This is a serious problem that is directly costing you output and revenue every single day."
-            rec = f"This needs urgent attention. Start with a full line balancing study this week — identify which stations are causing the most downtime and fix them first. Every 1% improvement in efficiency at your scale translates to significant output gains."
-        else:
-            cause = f"Your efficiency is {gap:.1f}% below the industry benchmark of {benchmark:.1f}%. You are close but not there yet. Small inefficiencies are adding up across your production process."
-            rec = f"You are {gap:.1f}% away from benchmark. Focus on reducing the top 2 or 3 causes of downtime and review your line balancing to squeeze out the remaining gap."
-
-    elif kpi == "manpower_utilization":
-        if status == "Critical":
-            cause = f"Your manpower utilization is {gap:.1f}% below benchmark. This means a significant portion of your workforce is not being used productively. You are paying for labor that is sitting idle."
-            rec = f"Conduct an immediate manpower efficiency study. Identify which stations have idle workers and redistribute them to where they are needed. The goal is to ensure every worker is contributing value during their shift."
-        else:
-            cause = f"Your manpower utilization is {gap:.1f}% below the {benchmark:.1f}% benchmark. Some of your workers have idle time that could be put to better use."
-            rec = f"Review your task allocation across stations. Small adjustments in how work is distributed could close this {gap:.1f}% gap and improve your overall productivity without adding any cost."
-
-    elif kpi == "roi":
-        if status == "Critical":
-            cause = f"Your ROI of {value:.1f}% is {gap:.1f}% below the industry benchmark of {benchmark:.1f}%. For every unit of investment you are generating significantly less return than your competitors. This will affect your ability to reinvest and grow."
-            rec = f"Focus on the highest cost drivers in your operation first. Reducing waste, rejection and downtime typically delivers the fastest ROI improvement. Start by quantifying your top 3 cost centers."
-        else:
-            cause = f"Your ROI is {gap:.1f}% below benchmark. You are generating returns but leaving money on the table compared to industry leaders."
-            rec = f"Closing this {gap:.1f}% ROI gap requires targeting your biggest cost inefficiencies. Review your waste costs, rejection costs and downtime costs to find where the biggest savings opportunity lies."
-
-    elif kpi == "cycle_time":
-        if status == "Critical":
-            cause = f"Your cycle time of {value:.1f} mins is {gap:.1f} mins above the benchmark of {benchmark:.1f} mins. Your production is running significantly slower than industry standard. This means fewer units produced per shift and higher cost per unit."
-            rec = f"Your cycle time gap of {gap:.1f} mins is too large to ignore. Start with time studies at every station this week to find your bottleneck. The bottleneck station is costing you the most — fix that first and your whole line speeds up."
-        else:
-            cause = f"Your cycle time is {gap:.1f} mins above benchmark. Your line is slightly slower than it should be. This is manageable but needs attention before it gets worse."
-            rec = f"A {gap:.1f} min cycle time gap is within reach to close. Review your slowest stations and look for quick wins — small layout changes or task redistributions that can shave time off the bottleneck."
-
-    elif kpi == "waste_percentage":
-        if status == "Critical":
-            cause = f"Your waste is {gap:.1f}% above the benchmark of {benchmark:.1f}%. You are throwing away {gap:.1f}% more of your inputs than industry leaders. This is a direct hit on your margins and your sustainability credentials."
-            rec = f"At {value:.1f}% waste you have a serious problem. Implement an immediate waste tracking system to categorize where the waste is coming from. Once you know the top 3 waste sources you can target them specifically."
-        else:
-            cause = f"Your waste is {gap:.1f}% above benchmark. You are generating more waste than you should be. At your scale this adds up to a significant cost."
-            rec = f"A {gap:.1f}% waste reduction is achievable with focused effort. Map your production process and identify the top 2 points where waste is generated and attack those first."
-
-    elif kpi == "rejection_rate":
-        if status == "Critical":
-            cause = f"Your rejection rate of {value:.1f}% is {gap:.1f}% above the benchmark of {benchmark:.1f}%. You are rejecting {gap:.1f}% more product than industry leaders. This means wasted materials, wasted labor and potentially unhappy customers."
-            rec = f"A rejection rate of {value:.1f}% is a quality emergency. Start by categorizing your rejections — what are the top 3 defect types? Once you know that you can trace them to their root cause and eliminate them systematically."
-        else:
-            cause = f"Your rejection rate is {gap:.1f}% above benchmark. You are rejecting more product than you should be. Each rejection is wasted material, wasted labor and wasted time."
-            rec = f"Closing this {gap:.1f}% rejection gap requires understanding where defects originate. Implement quality checkpoints at the 2 or 3 most critical stages of your process to catch defects early before they become rejections."
-
-    elif kpi == "lead_time":
-        if status == "Critical":
-            cause = f"Your lead time of {value:.1f} days is {gap:.1f} days above the benchmark of {benchmark:.1f} days. Your customers are waiting significantly longer than they should be. This puts you at a competitive disadvantage and risks losing orders."
-            rec = f"A lead time of {value:.1f} days when the benchmark is {benchmark:.1f} days is a serious competitive risk. Map your entire process from order receipt to delivery and identify where the longest delays occur. Those are your priority targets."
-        else:
-            cause = f"Your lead time is {gap:.1f} days above benchmark. You are slower than your competitors in getting products to customers. In a competitive market this gap matters."
-            rec = f"Closing a {gap:.1f} day lead time gap is achievable. Look at your scheduling and order processing first — often lead time improvements come from better planning rather than faster production."
-
-    else:
-        cause = f"This metric is {gap:.1f} units away from the industry benchmark of {benchmark:.1f}. This gap is affecting your overall operational performance."
-        rec = f"Focus on understanding why this metric is {gap:.1f} units below benchmark and develop a specific action plan to close the gap within the next 30 days."
-
-    return cause, rec
-
-
-def generate_pdf_report(company_name, category, industry, business_model, currency_symbol,
-                          analysis, performance_labels, risk_score, risk_label,
-                          root_causes, recommendations, priority_list, projections, pfmea_data=None, action_plan_data=None):
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.6*inch, bottomMargin=0.6*inch,
-                             leftMargin=0.7*inch, rightMargin=0.7*inch)
-    styles = getSampleStyleSheet()
-    elements = []
-
-    title_style = ParagraphStyle('TitleStyle', parent=styles['Title'], textColor=colors.HexColor('#CC0000'), fontSize=20, spaceAfter=2)
-    subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#555555'), spaceAfter=14)
-    heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], textColor=colors.HexColor('#CC0000'), fontSize=13, spaceBefore=16, spaceAfter=8)
-    body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=9.5, leading=14, spaceAfter=8, alignment=TA_LEFT)
-    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#999999'))
-
-    elements.append(Paragraph("Smart Process Optimizer", title_style))
-    elements.append(Paragraph("Performance Analysis Report", subtitle_style))
-
-    meta_data = [
-        ["Company / Plant", company_name],
-        ["Category", category],
-        ["Industry", industry],
-        ["Business Model", business_model],
-        ["Report Date", datetime.now().strftime("%B %d, %Y")],
-    ]
-    meta_table = Table(meta_data, colWidths=[1.7*inch, 4.3*inch])
-    meta_table.setStyle(TableStyle([
-        ('FONTSIZE', (0,0), (-1,-1), 9.5),
-        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#CC0000')),
-        ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-        ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-        ('TOPPADDING', (0,0), (-1,-1), 2),
-    ]))
-    elements.append(meta_table)
-    elements.append(Spacer(1, 4))
-    elements.append(Table([['']], colWidths=[6*inch], style=[('LINEBELOW', (0,0), (-1,0), 1, colors.HexColor('#CC0000'))]))
-
-    elements.append(Paragraph("Performance Analysis", heading_style))
-    perf_rows = [["Metric", "Your Number", "Benchmark", "Status"]]
-    for kpi, result in analysis.items():
-        perf_rows.append([
-            performance_labels.get(kpi, kpi),
-            f"{result['value']:.3f}",
-            f"{result['benchmark']:.3f}",
-            result['status']
-        ])
-    perf_table = Table(perf_rows, colWidths=[2.3*inch, 1.3*inch, 1.3*inch, 1.1*inch])
-    style_cmds = [
-        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
-        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0,0), (-1,-1), 9),
-        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
-    ]
-    for i, (kpi, result) in enumerate(analysis.items()):
-        row_idx = i + 1
-        if result['status'] == 'Critical':
-            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#CC0000')))
-        elif result['status'] == 'Needs Improvement':
-            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#B8860B')))
-        else:
-            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#008000')))
-    perf_table.setStyle(TableStyle(style_cmds))
-    elements.append(perf_table)
-
-    elements.append(Paragraph("Overall Risk Assessment", heading_style))
-    elements.append(Paragraph(f"<b>Risk Score:</b> {risk_score} / 100 &nbsp;&nbsp; <b>Status:</b> {risk_label}", body_style))
-
-    if root_causes:
-        elements.append(Paragraph("What is Happening", heading_style))
-        for cause in root_causes:
-            elements.append(Paragraph(f"&bull; {cause}", body_style))
-
-    if recommendations:
-        elements.append(Paragraph("What You Should Do", heading_style))
-        for rec in recommendations:
-            elements.append(Paragraph(f"&bull; {rec}", body_style))
-
-    if priority_list:
-        elements.append(Paragraph("Priority Order to Fix", heading_style))
-        for i, item in enumerate(priority_list, 1):
-            elements.append(Paragraph(f"{i}. {item}", body_style))
-
-    if projections:
-        elements.append(Paragraph("Projected Outcome", heading_style))
-        proj_rows = [["Metric", "Now", "Projected"]]
-        for kpi, (current, projected) in projections.items():
-            proj_rows.append([performance_labels.get(kpi, kpi), f"{current:.3f}", f"{projected:.3f}"])
-        proj_table = Table(proj_rows, colWidths=[2.5*inch, 1.75*inch, 1.75*inch])
-        proj_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
-            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
-            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0,0), (-1,-1), 9),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-            ('TOPPADDING', (0,0), (-1,-1), 6),
-        ]))
-        elements.append(proj_table)
-
-    if pfmea_data:
-        elements.append(Paragraph("Process Failure Mode and Effects Analysis (PFMEA)", heading_style))
-        pfmea_rows = [
-            ["Process Step", pfmea_data.get('process_step') or "Not specified"],
-            ["Failure Mode", pfmea_data.get('failure_mode') or "Not specified"],
-            ["Effect of Failure", pfmea_data.get('failure_effect') or "Not specified"],
-            ["Severity", str(pfmea_data.get('severity', 'N/A'))],
-            ["Occurrence", str(pfmea_data.get('occurrence', 'N/A'))],
-            ["Detection", str(pfmea_data.get('detection', 'N/A'))],
-            ["RPN Score", str(pfmea_data.get('rpn', 'N/A'))],
-            ["Risk Level", pfmea_data.get('risk_level', 'N/A')],
+    tool = st.selectbox(
+        "Select a Deep Analysis Tool",
+        [
+            "Bottleneck Identifier",
+            "OEE Calculator (Overall Equipment Effectiveness)",
+            "Defect Pareto Analysis",
+            "Manpower Planning Tool"
         ]
-        pfmea_table = Table(pfmea_rows, colWidths=[1.7*inch, 4.3*inch])
-        pfmea_table.setStyle(TableStyle([
-            ('FONTSIZE', (0,0), (-1,-1), 9.5),
-            ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#CC0000')),
-            ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
-            ('TOPPADDING', (0,0), (-1,-1), 5),
-        ]))
-        elements.append(pfmea_table)
-
-
-    if action_plan_data:
-        elements.append(Paragraph("30 Day Action Plan", heading_style))
-        week_names = {
-            "week1": "Week 1 — Immediate Action",
-            "week2": "Week 2 — Investigate",
-            "week3": "Week 3 — Implement",
-            "week4": "Week 4 — Measure and Review"
-        }
-        for week_key, week_name in week_names.items():
-            items = action_plan_data.get(week_key, [])
-            if items:
-                elements.append(Paragraph(f"<b>{week_name}</b>", body_style))
-                for item in items:
-                    elements.append(Paragraph(f"&bull; {item['action']}", body_style))
-
-    elements.append(Spacer(1, 20))
-    elements.append(Paragraph("Generated by Smart Process Optimizer (SPO) - smart-process-optimizer.streamlit.app", footer_style))
-
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer
-
-
-def show_manufacturing(industry, currency_symbol="$"):
-    benchmarks = manufacturing_benchmarks[industry]
-
-    st.sidebar.title("Enter Your Performance Numbers")
-    st.sidebar.divider()
-    st.sidebar.caption(f"Benchmarks: {industry} Industry (India)")
-
-    efficiency_rate = st.sidebar.number_input("Efficiency Rate (%)", min_value=0.000, max_value=100.000, value=65.000, step=0.001, format="%.3f")
-    cycle_time = st.sidebar.number_input("Cycle Time (mins)", min_value=0.000, max_value=120.000, value=45.000, step=0.001, format="%.3f")
-    waste_percentage = st.sidebar.number_input("Waste Percentage (%)", min_value=0.000, max_value=50.000, value=12.000, step=0.001, format="%.3f")
-    roi = st.sidebar.number_input("ROI (%)", min_value=0.000, max_value=50.000, value=8.000, step=0.001, format="%.3f")
-    manpower_utilization = st.sidebar.number_input("Manpower Utilization (%)", min_value=0.000, max_value=100.000, value=70.000, step=0.001, format="%.3f")
-    rejection_rate = st.sidebar.number_input("Rejection Rate (%)", min_value=0.000, max_value=50.000, value=8.000, step=0.001, format="%.3f")
-    lead_time = st.sidebar.number_input("Lead Time (days)", min_value=0.000, max_value=30.000, value=10.000, step=0.001, format="%.3f")
-
-    kpi_data = {
-        "efficiency_rate": efficiency_rate,
-        "cycle_time": cycle_time,
-        "waste_percentage": waste_percentage,
-        "roi": roi,
-        "manpower_utilization": manpower_utilization,
-        "rejection_rate": rejection_rate,
-        "lead_time": lead_time
-    }
-
-    analysis = analyze_kpis(kpi_data, benchmarks)
-
-    # Company name field
-    company_name = st.text_input("Company / Plant Name", placeholder="e.g. Ahuja Radios")
-    st.divider()
-
-    # Performance Cards
-    st.header("Performance Analysis")
-    st.caption(f"Benchmarks based on {industry} industry standards in India")
-    col1, col2, col3 = st.columns(3)
-
-    status_icons = {
-        "Good": "✅",
-        "Needs Improvement": "⚠️",
-        "Critical": "🚨"
-    }
-
-    for i, (kpi, result) in enumerate(analysis.items()):
-        col = [col1, col2, col3][i % 3]
-        with col:
-            if result['status'] == "Good":
-                color = "#00CC00"
-            elif result['status'] == "Needs Improvement":
-                color = "#FFD700"
-            else:
-                color = "#CC0000"
-
-            st.markdown(f"""
-                <div style="
-                    background-color: #1a1a1a;
-                    border: 2px solid {color};
-                    border-radius: 10px;
-                    padding: 15px;
-                    margin: 5px 0;
-                    text-align: center;">
-                    <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{status_icons[result['status']]} {performance_labels[kpi]}</p>
-                    <p style="color: {color}; font-size: 2rem; font-weight: 800; margin: 5px 0;">{result['value']:.3f}</p>
-                    <p style="color: #888888; font-size: 0.8rem; margin: 0;">Benchmark: {result['benchmark']:.3f}</p>
-                </div>
-            """, unsafe_allow_html=True)
+    )
 
     st.divider()
 
-    # Risk Assessment
-    st.header("Overall Plant Risk Assessment")
+    # ════════════════════════════════════════
+    # TOOL 1: BOTTLENECK IDENTIFIER
+    # ════════════════════════════════════════
+    if tool == "Bottleneck Identifier":
+        st.header("Bottleneck Identifier")
+        st.write("Enter your production stations and their cycle times. SPO will identify your bottleneck and tell you exactly how much it is costing you.")
 
-    critical_count = sum(1 for r in analysis.values() if r['status'] == "Critical")
-    needs_improvement_count = sum(1 for r in analysis.values() if r['status'] == "Needs Improvement")
-    good_count = sum(1 for r in analysis.values() if r['status'] == "Good")
-    risk_score = 100 - ((critical_count * 20) + (needs_improvement_count * 10))
-    risk_score = max(0, min(100, risk_score))
-
-    if risk_score >= 80:
-        risk_color = "#00CC00"
-        risk_label = "LOW RISK"
-        risk_icon = "✅"
-    elif risk_score >= 50:
-        risk_color = "#FFD700"
-        risk_label = "MEDIUM RISK"
-        risk_icon = "⚠️"
-    else:
-        risk_color = "#CC0000"
-        risk_label = "HIGH RISK"
-        risk_icon = "🚨"
-
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid {risk_color}; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Overall Risk Score</p>
-            <p style="color: {risk_color}; font-size: 3rem; font-weight: 900; margin: 0;">{risk_score}</p>
-            <p style="color: {risk_color}; font-size: 1rem; margin: 0;">{risk_icon} {risk_label}</p>
-        </div>""", unsafe_allow_html=True)
-    with col2:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #CC0000; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Critical Areas</p>
-            <p style="color: #CC0000; font-size: 3rem; font-weight: 900; margin: 0;">{critical_count}</p>
-        </div>""", unsafe_allow_html=True)
-    with col3:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Needs Improvement</p>
-            <p style="color: #FFD700; font-size: 3rem; font-weight: 900; margin: 0;">{needs_improvement_count}</p>
-        </div>""", unsafe_allow_html=True)
-    with col4:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Performing Well</p>
-            <p style="color: #00CC00; font-size: 3rem; font-weight: 900; margin: 0;">{good_count}</p>
-        </div>""", unsafe_allow_html=True)
-
-    st.divider()
-
-    # Dynamic Root Causes and Recommendations
-    st.header("What is Wrong and How to Fix It")
-    st.caption(f"Analysis based on your actual numbers compared to {industry} industry benchmark")
-
-    root_causes = []
-    recommendations = []
-    improvements = {}
-
-    for kpi, result in analysis.items():
-        if result["status"] in ["Needs Improvement", "Critical"]:
-            cause, rec = generate_dynamic_insights(
-                kpi, result["value"], result["benchmark"], result["gap"], result["status"]
+        col1, col2 = st.columns(2)
+        with col1:
+            takt_time = st.number_input(
+                "Takt Time (mins) — How often does a customer need one unit?",
+                min_value=0.1, max_value=480.0, value=30.0, step=0.1, format="%.1f"
             )
-            root_causes.append(cause)
-            recommendations.append(rec)
+            num_stations = st.number_input("Number of Stations", min_value=2, max_value=20, value=5, step=1)
+            shifts_per_day = st.number_input("Shifts per Day", min_value=1, max_value=3, value=2, step=1)
+            hours_per_shift = st.number_input("Hours per Shift", min_value=1.0, max_value=12.0, value=8.0, step=0.5)
 
-            if kpi in ["efficiency_rate", "roi", "manpower_utilization"]:
-                improvements[kpi] = min(result["benchmark"], result["value"] + result["gap"] * 0.5)
-            else:
-                improvements[kpi] = max(result["benchmark"], result["value"] - result["gap"] * 0.5)
+        st.write("")
+        st.subheader("Enter Station Data")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("What is happening in your plant?")
-        if root_causes:
-            for cause in root_causes:
-                st.warning(cause)
-        else:
-            st.success("Your plant is performing at or above benchmark level. Keep it up!")
-
-    with col2:
-        st.subheader("What should you do about it?")
-        if recommendations:
-            for rec in recommendations:
-                st.info(rec)
-        else:
-            st.success("No action required. Focus on maintaining your current performance.")
-
-    st.divider()
-
-    # Action Priority Score
-    st.header("What to Fix First")
-    st.write("Focus on these areas first for maximum impact:")
-
-    priority_scores = calculate_priority_score(analysis)
-    priority_rank = 1
-    priority_list_names = []
-
-    for kpi, score in priority_scores.items():
-        if score > 0:
-            result = analysis[kpi]
-            priority_list_names.append(performance_labels[kpi])
-            if result['status'] == "Critical":
-                color = "#CC0000"
-                icon = "🚨"
-            else:
-                color = "#FFD700"
-                icon = "⚠️"
-
-            st.markdown(f"""
-                <div style="background-color: #1a1a1a; border-left: 4px solid {color}; padding: 10px 15px; margin: 5px 0; border-radius: 5px;">
-                    <span style="color: {color}; font-weight: 800;">{icon} #{priority_rank}</span>
-                    <span style="color: #ffffff; margin-left: 10px;">{performance_labels[kpi]}</span>
-                    <span style="color: #888888; margin-left: 10px;">Your number: {result['value']:.3f} | Target: {result['benchmark']:.3f} | Gap: {result['gap']:.3f}</span>
-                </div>
-            """, unsafe_allow_html=True)
-            priority_rank += 1
-
-
-    st.divider()
-
-    # 30 Day Action Plan
-    st.header("Your 30 Day Action Plan")
-    st.write("Based on your analysis here is a structured plan to improve your performance over the next 30 days:")
-
-    action_plan = generate_action_plan(analysis, performance_labels, recommendations)
-
-    week_colors = {
-        "week1": "#CC0000",
-        "week2": "#FF6B00",
-        "week3": "#FFD700",
-        "week4": "#00CC00"
-    }
-    week_labels = {
-        "week1": "Week 1 — Immediate Action",
-        "week2": "Week 2 — Investigate",
-        "week3": "Week 3 — Implement",
-        "week4": "Week 4 — Measure and Review"
-    }
-    week_desc = {
-        "week1": "Fix these now — they are costing you the most",
-        "week2": "Dig deeper to understand the real causes",
-        "week3": "Put the solutions in place",
-        "week4": "Check what improved and plan your next cycle"
-    }
-
-    for week_key, week_name in week_labels.items():
-        items = action_plan[week_key]
-        if items:
-            color = week_colors[week_key]
-            st.markdown(f"""
-                <div style="border-left: 4px solid {color}; padding: 12px 16px; margin: 12px 0; background: rgba(255,255,255,0.02); border-radius: 0 8px 8px 0;">
-                    <p style="color: {color}; font-weight: 800; font-size: 1rem; margin: 0 0 2px 0;">{week_name}</p>
-                    <p style="color: #555555; font-size: 0.8rem; margin: 0 0 10px 0;">{week_desc[week_key]}</p>
-            """, unsafe_allow_html=True)
-            for item in items:
-                priority = item.get("priority", "Standard")
-                if priority == "Critical":
-                    icon = "🚨"
-                elif priority == "Needs Improvement":
-                    icon = "⚠️"
-                elif priority == "Maintain":
-                    icon = "✅"
-                else:
-                    icon = "→"
-                st.markdown(f"""
-                    <p style="color: #cccccc; font-size: 0.88rem; margin: 6px 0; padding-left: 8px;">
-                        {icon} &nbsp;{item["action"]}
-                    </p>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    st.divider()
-
-    # Projected Outcome
-    st.header("Projected Outcome")
-    st.write("Based on your numbers here is a realistic projection if you act on the recommendations:")
-
-    projections_data = {}
-    if improvements:
-        col1, col2, col3 = st.columns(3)
-        cols = [col1, col2, col3]
-
-        for i, (kpi, projected) in enumerate(improvements.items()):
+        stations = []
+        cols = st.columns(3)
+        for i in range(int(num_stations)):
             col = cols[i % 3]
-            current = kpi_data[kpi]
-            projections_data[kpi] = (current, projected)
             with col:
-                if kpi in ["efficiency_rate", "roi", "manpower_utilization"]:
-                    change = projected - current
-                    change_str = f"+{change:.3f}"
-                else:
-                    change = current - projected
-                    change_str = f"-{change:.3f}"
+                name = st.text_input(f"Station {i+1} Name", value=f"Station {i+1}", key=f"sname_{i}")
+                ct = st.number_input(f"Cycle Time (mins)", min_value=0.1, max_value=480.0, value=float(20 + i*5), step=0.1, format="%.1f", key=f"sct_{i}")
+                stations.append({"name": name, "cycle_time": ct})
 
+        if stations:
+            st.divider()
+            st.header("Bottleneck Analysis Results")
+
+            bottleneck = max(stations, key=lambda x: x["cycle_time"])
+            bottleneck_idx = stations.index(bottleneck)
+            avg_ct = sum(s["cycle_time"] for s in stations) / len(stations)
+            available_mins = shifts_per_day * hours_per_shift * 60
+            current_output = available_mins / bottleneck["cycle_time"]
+            ideal_output = available_mins / takt_time
+            efficiency = (current_output / ideal_output) * 100 if ideal_output > 0 else 0
+
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid #CC0000; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Bottleneck Station</p>
+                    <p style="color: #CC0000; font-size: 1.4rem; font-weight: 900; margin: 8px 0;">{bottleneck['name']}</p>
+                    <p style="color: #888; font-size: 0.8rem; margin: 0;">{bottleneck['cycle_time']:.1f} mins</p>
+                </div>""", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Current Output</p>
+                    <p style="color: #FFD700; font-size: 1.4rem; font-weight: 900; margin: 8px 0;">{current_output:.0f}</p>
+                    <p style="color: #888; font-size: 0.8rem; margin: 0;">units per day</p>
+                </div>""", unsafe_allow_html=True)
+            with col3:
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Target Output</p>
+                    <p style="color: #00CC00; font-size: 1.4rem; font-weight: 900; margin: 8px 0;">{ideal_output:.0f}</p>
+                    <p style="color: #888; font-size: 0.8rem; margin: 0;">units per day</p>
+                </div>""", unsafe_allow_html=True)
+            with col4:
+                color = "#00CC00" if efficiency >= 85 else "#FFD700" if efficiency >= 70 else "#CC0000"
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {color}; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Line Efficiency</p>
+                    <p style="color: {color}; font-size: 1.4rem; font-weight: 900; margin: 8px 0;">{efficiency:.1f}%</p>
+                    <p style="color: #888; font-size: 0.8rem; margin: 0;">vs 85% benchmark</p>
+                </div>""", unsafe_allow_html=True)
+
+            st.write("")
+
+            # Station chart
+            station_names = [s["name"] for s in stations]
+            cycle_times = [s["cycle_time"] for s in stations]
+            colors_bar = ["#CC0000" if s["name"] == bottleneck["name"] else "#1a6b3c" for s in stations]
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=station_names,
+                y=cycle_times,
+                marker_color=colors_bar,
+                text=[f"{ct:.1f} mins" for ct in cycle_times],
+                textposition="outside"
+            ))
+            fig.add_hline(y=takt_time, line_dash="dash", line_color="#FFD700",
+                         annotation_text=f"Takt Time: {takt_time:.1f} mins",
+                         annotation_position="top right")
+            fig.update_layout(
+                title="Cycle Time by Station (Red = Bottleneck)",
+                xaxis_title="Station",
+                yaxis_title="Cycle Time (mins)",
+                plot_bgcolor="#0a0a0a",
+                paper_bgcolor="#0a0a0a",
+                font_color="#ffffff",
+                height=350
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # What if analysis
+            st.subheader("What If You Fix the Bottleneck?")
+            second_highest = sorted(stations, key=lambda x: x["cycle_time"], reverse=True)[1] if len(stations) > 1 else bottleneck
+            new_bottleneck_ct = second_highest["cycle_time"]
+            new_output = available_mins / new_bottleneck_ct
+            output_gain = new_output - current_output
+            new_efficiency = (new_output / ideal_output) * 100 if ideal_output > 0 else 0
+
+            col1, col2 = st.columns(2)
+            with col1:
                 st.markdown(f"""
-                    <div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; margin: 5px 0; text-align: center;">
-                        <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{performance_labels[kpi]}</p>
-                        <p style="color: #CC0000; font-size: 1.2rem; margin: 5px 0;">Now: {current:.3f}</p>
-                        <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">Projected: {projected:.3f}</p>
-                        <p style="color: #00CC00; font-size: 1rem; font-weight: 800; margin: 0;">{change_str} improvement</p>
-                    </div>
+                <div style="background: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px;">
+                    <p style="color: #00CC00; font-weight: 800; font-size: 1rem; margin: 0 0 12px 0;">If you fix {bottleneck['name']}:</p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">New bottleneck becomes: <b style="color:#FFD700">{second_highest['name']} ({new_bottleneck_ct:.1f} mins)</b></p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">Daily output increases from <b style="color:#CC0000">{current_output:.0f}</b> to <b style="color:#00CC00">{new_output:.0f}</b> units</p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">That is <b style="color:#00CC00">+{output_gain:.0f} extra units per day</b></p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">Line efficiency improves from <b style="color:#CC0000">{efficiency:.1f}%</b> to <b style="color:#00CC00">{new_efficiency:.1f}%</b></p>
+                </div>
                 """, unsafe_allow_html=True)
-    else:
-        st.success("Your plant is already performing at benchmark level!")
 
-    st.divider()
+            with col2:
+                units_per_year = output_gain * 250
+                revenue_per_unit = st.number_input(f"Revenue per Unit ({currency_symbol})", min_value=0.0, value=100.0, step=1.0)
+                annual_gain = units_per_year * revenue_per_unit
+                st.markdown(f"""
+                <div style="background: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px;">
+                    <p style="color: #00CC00; font-weight: 800; font-size: 1rem; margin: 0 0 12px 0;">Financial Impact:</p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">Extra units per year: <b style="color:#00CC00">{units_per_year:,.0f}</b></p>
+                    <p style="color: #cccccc; font-size: 0.9rem; margin: 4px 0;">Additional annual revenue: <b style="color:#00CC00">{currency_symbol}{annual_gain:,.0f}</b></p>
+                    <p style="color: #888888; font-size: 0.78rem; margin-top: 8px;">Based on 250 working days per year</p>
+                </div>
+                """, unsafe_allow_html=True)
 
-    # What-If Simulator
-    st.header("Play With the Numbers")
-    st.write("Change the values below to see what happens to your results")
-    col1, col2 = st.columns(2)
+            st.write("")
+            st.subheader("Recommendation")
+            idle_time = sum(bottleneck["cycle_time"] - s["cycle_time"] for s in stations if s["cycle_time"] < bottleneck["cycle_time"])
+            st.info(f"Your bottleneck is {bottleneck['name']} at {bottleneck['cycle_time']:.1f} mins. This single station is limiting your entire line to {current_output:.0f} units per day. There are {idle_time:.1f} mins of combined idle time across your other stations that could be redistributed to {bottleneck['name']} to reduce its cycle time. Conduct a time study at {bottleneck['name']} to identify which tasks can be moved to adjacent stations.")
 
-    with col1:
-        efficiency_improvement = st.number_input("Improve Efficiency Rate by (%)", min_value=0.000, max_value=30.000, value=0.000, step=0.001, format="%.3f")
-        manpower_improvement = st.number_input("Improve Manpower Utilization by (%)", min_value=0.000, max_value=30.000, value=0.000, step=0.001, format="%.3f")
-        rejection_improvement = st.number_input("Reduce Rejection Rate by (%)", min_value=0.000, max_value=10.000, value=0.000, step=0.001, format="%.3f")
+    # ════════════════════════════════════════
+    # TOOL 2: OEE CALCULATOR
+    # ════════════════════════════════════════
+    elif tool == "OEE Calculator (Overall Equipment Effectiveness)":
+        st.header("OEE Calculator")
+        st.write("OEE measures how effectively your equipment is being used. World class OEE is 85%. Enter your data below.")
 
-    with col2:
-        waste_improvement = st.number_input("Reduce Waste by (%)", min_value=0.000, max_value=20.000, value=0.000, step=0.001, format="%.3f")
-        cycle_improvement = st.number_input("Reduce Cycle Time by (mins)", min_value=0.000, max_value=30.000, value=0.000, step=0.001, format="%.3f")
-        lead_improvement = st.number_input("Reduce Lead Time by (days)", min_value=0.000, max_value=10.000, value=0.000, step=0.001, format="%.3f")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Availability")
+            planned_time = st.number_input("Planned Production Time (mins/day)", min_value=1.0, max_value=1440.0, value=480.0, step=1.0)
+            downtime = st.number_input("Unplanned Downtime (mins/day)", min_value=0.0, max_value=480.0, value=60.0, step=1.0)
+            availability = ((planned_time - downtime) / planned_time) * 100 if planned_time > 0 else 0
 
-    st.subheader("Your Projected Results")
-    col1, col2, col3 = st.columns(3)
+            st.subheader("Performance")
+            ideal_cycle_time = st.number_input("Ideal Cycle Time (mins per unit)", min_value=0.01, max_value=120.0, value=2.0, step=0.1, format="%.2f")
+            total_units = st.number_input("Total Units Produced", min_value=1, max_value=10000, value=180, step=1)
+            run_time = planned_time - downtime
+            performance = ((ideal_cycle_time * total_units) / run_time) * 100 if run_time > 0 else 0
+            performance = min(performance, 100)
 
-    with col1:
-        st.metric("Efficiency Rate", f"{efficiency_rate + efficiency_improvement:.3f}%", f"+{efficiency_improvement:.3f}%")
-        st.metric("Manpower Utilization", f"{manpower_utilization + manpower_improvement:.3f}%", f"+{manpower_improvement:.3f}%")
+        with col2:
+            st.subheader("Quality")
+            good_units = st.number_input("Good Units Produced (no defects)", min_value=0, max_value=10000, value=170, step=1)
+            quality = (good_units / total_units) * 100 if total_units > 0 else 0
 
-    with col2:
-        st.metric("Rejection Rate", f"{rejection_rate - rejection_improvement:.3f}%", f"-{rejection_improvement:.3f}%")
-        st.metric("Waste Percentage", f"{waste_percentage - waste_improvement:.3f}%", f"-{waste_improvement:.3f}%")
+            st.subheader("Losses Breakdown")
+            st.write("What is causing your downtime?")
+            loss1 = st.number_input("Machine Breakdown (mins)", min_value=0.0, value=30.0, step=1.0)
+            loss2 = st.number_input("Changeover/Setup (mins)", min_value=0.0, value=20.0, step=1.0)
+            loss3 = st.number_input("Minor Stoppages (mins)", min_value=0.0, value=10.0, step=1.0)
 
-    with col3:
-        st.metric("Cycle Time", f"{cycle_time - cycle_improvement:.3f} mins", f"-{cycle_improvement:.3f} mins")
-        st.metric("Lead Time", f"{lead_time - lead_improvement:.3f} days", f"-{lead_improvement:.3f} days")
+        oee = (availability / 100) * (performance / 100) * (quality / 100) * 100
 
-    st.divider()
+        st.divider()
+        st.header("OEE Results")
 
-    # Gauge Charts
-    st.header("Performance Charts")
-    st.subheader("Performance Gauges")
+        oee_color = "#00CC00" if oee >= 85 else "#FFD700" if oee >= 60 else "#CC0000"
+        avail_color = "#00CC00" if availability >= 90 else "#FFD700" if availability >= 75 else "#CC0000"
+        perf_color = "#00CC00" if performance >= 95 else "#FFD700" if performance >= 80 else "#CC0000"
+        qual_color = "#00CC00" if quality >= 99 else "#FFD700" if quality >= 95 else "#CC0000"
 
-    def create_gauge(title, value, benchmark, max_val):
-        fig = go.Figure(go.Indicator(
-            mode="gauge+number+delta",
-            value=value,
-            delta={"reference": benchmark},
-            title={"text": title},
-            gauge={
-                "axis": {"range": [0, max_val]},
-                "bar": {"color": "darkred"},
-                "steps": [
-                    {"range": [0, benchmark * 0.7], "color": "red"},
-                    {"range": [benchmark * 0.7, benchmark], "color": "orange"},
-                    {"range": [benchmark, max_val], "color": "green"}
-                ],
-                "threshold": {
-                    "line": {"color": "white", "width": 4},
-                    "thickness": 0.75,
-                    "value": benchmark
-                }
-            }
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {oee_color}; border-radius: 10px; padding: 20px; text-align: center;">
+                <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Overall OEE</p>
+                <p style="color: {oee_color}; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{oee:.1f}%</p>
+                <p style="color: #888; font-size: 0.78rem; margin: 0;">Benchmark: 85%</p>
+            </div>""", unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {avail_color}; border-radius: 10px; padding: 20px; text-align: center;">
+                <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Availability</p>
+                <p style="color: {avail_color}; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{availability:.1f}%</p>
+                <p style="color: #888; font-size: 0.78rem; margin: 0;">Benchmark: 90%</p>
+            </div>""", unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {perf_color}; border-radius: 10px; padding: 20px; text-align: center;">
+                <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Performance</p>
+                <p style="color: {perf_color}; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{performance:.1f}%</p>
+                <p style="color: #888; font-size: 0.78rem; margin: 0;">Benchmark: 95%</p>
+            </div>""", unsafe_allow_html=True)
+        with col4:
+            st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {qual_color}; border-radius: 10px; padding: 20px; text-align: center;">
+                <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Quality</p>
+                <p style="color: {qual_color}; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{quality:.1f}%</p>
+                <p style="color: #888; font-size: 0.78rem; margin: 0;">Benchmark: 99%</p>
+            </div>""", unsafe_allow_html=True)
+
+        st.write("")
+
+        # OEE Waterfall chart
+        world_class_oee = 85.0
+        oee_gap = world_class_oee - oee if oee < world_class_oee else 0
+
+        fig = go.Figure()
+        components = ["Availability", "Performance", "Quality", "OEE"]
+        values = [availability, performance, quality, oee]
+        bar_colors = [
+            "#00CC00" if v >= 90 else "#FFD700" if v >= 75 else "#CC0000"
+            for v in values
+        ]
+        fig.add_trace(go.Bar(
+            x=components,
+            y=values,
+            marker_color=bar_colors,
+            text=[f"{v:.1f}%" for v in values],
+            textposition="outside"
         ))
-        fig.update_layout(height=250, margin=dict(t=50, b=0, l=0, r=0))
-        return fig
-
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.plotly_chart(create_gauge("Efficiency Rate", efficiency_rate, benchmarks["efficiency_rate"], 100), use_container_width=True)
-        st.plotly_chart(create_gauge("ROI", roi, benchmarks["roi"], 50), use_container_width=True)
-
-    with col2:
-        st.plotly_chart(create_gauge("Manpower Utilization", manpower_utilization, benchmarks["manpower_utilization"], 100), use_container_width=True)
-        st.plotly_chart(create_gauge("Waste %", waste_percentage, benchmarks["waste_percentage"], 50), use_container_width=True)
-
-    with col3:
-        st.plotly_chart(create_gauge("Rejection Rate", rejection_rate, benchmarks["rejection_rate"], 50), use_container_width=True)
-        st.plotly_chart(create_gauge("Lead Time", lead_time, benchmarks["lead_time"], 30), use_container_width=True)
-
-    st.divider()
-
-    # PFMEA Module
-    st.header("PFMEA Module")
-    st.write("Identify and assess potential failure risks in your production process")
-    col1, col2 = st.columns(2)
-
-    with col1:
-        process_step = st.text_input("Process Step", placeholder="e.g. Assembly, Welding, Painting")
-        failure_mode = st.text_input("Potential Failure Mode", placeholder="e.g. Incorrect assembly, Weld crack")
-        failure_effect = st.text_input("Effect of Failure", placeholder="e.g. Product defect, Safety hazard")
-
-    with col2:
-        severity = st.slider("Severity (1-10)", 1, 10, 5)
-        occurrence = st.slider("Occurrence (1-10)", 1, 10, 5)
-        detection = st.slider("Detection (1-10)", 1, 10, 5)
-
-    rpn = severity * occurrence * detection
-
-    st.subheader("Risk Assessment")
-    col1, col2, col3, col4 = st.columns(4)
-
-    with col1:
-        st.metric("Severity", severity)
-    with col2:
-        st.metric("Occurrence", occurrence)
-    with col3:
-        st.metric("Detection", detection)
-    with col4:
-        if rpn >= 200:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #CC0000; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
-                <p style="color: #CC0000; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
-        elif rpn >= 100:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #FFD700; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
-                <p style="color: #FFD700; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
-        else:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
-                <p style="color: #00CC00; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
-
-    if rpn >= 200:
-        risk_level_text = "HIGH RISK"
-        st.error(f"🚨 HIGH RISK — RPN of {rpn} requires immediate corrective action!")
-        st.warning("Stop production at this process step and investigate immediately before resuming.")
-    elif rpn >= 100:
-        risk_level_text = "MEDIUM RISK"
-        st.warning(f"⚠️ MEDIUM RISK — RPN of {rpn} requires attention and monitoring.")
-        st.info("Develop a corrective action plan and implement within 30 days.")
-    else:
-        risk_level_text = "LOW RISK"
-        st.success(f"✅ LOW RISK — RPN of {rpn} is acceptable.")
-        st.info("Maintain current controls and monitor regularly.")
-
-    st.divider()
-
-    # Generate Report
-    st.header("Generate Report")
-    st.write("Download a complete PDF report of this analysis to share or keep for your records")
-
-    if st.button("Generate Report", use_container_width=True):
-        report_company = company_name if company_name else "Unnamed Company"
-
-        pfmea_data = {
-            "process_step": process_step,
-            "failure_mode": failure_mode,
-            "failure_effect": failure_effect,
-            "severity": severity,
-            "occurrence": occurrence,
-            "detection": detection,
-            "rpn": rpn,
-            "risk_level": risk_level_text
-        }
-
-        pdf_buffer = generate_pdf_report(
-            company_name=report_company,
-            category="Manufacturing",
-            industry=industry,
-            business_model=st.session_state.get("business_model", "N/A"),
-            currency_symbol=currency_symbol,
-            analysis=analysis,
-            performance_labels=performance_labels,
-            risk_score=risk_score,
-            risk_label=risk_label,
-            root_causes=root_causes,
-            recommendations=recommendations,
-            priority_list=priority_list_names,
-            projections=projections_data,
-            pfmea_data=pfmea_data,
-            action_plan_data=action_plan
+        fig.add_hline(y=85, line_dash="dash", line_color="#ffffff",
+                     annotation_text="World Class OEE: 85%",
+                     annotation_position="top right")
+        fig.update_layout(
+            title="OEE Components vs World Class Benchmark",
+            yaxis_title="Percentage (%)",
+            yaxis_range=[0, 110],
+            plot_bgcolor="#0a0a0a",
+            paper_bgcolor="#0a0a0a",
+            font_color="#ffffff",
+            height=350
         )
+        st.plotly_chart(fig, use_container_width=True)
 
-        st.download_button(
-            label="Download PDF Report",
-            data=pdf_buffer,
-            file_name=f"SPO_Report_{report_company.replace(' ', '_')}.pdf",
-            mime="application/pdf",
-            use_container_width=True
-        )
+        # Losses breakdown
+        st.subheader("Losses Breakdown")
+        col1, col2 = st.columns(2)
+        with col1:
+            total_loss = loss1 + loss2 + loss3
+            if total_loss > 0:
+                loss_fig = go.Figure(go.Pie(
+                    labels=["Machine Breakdown", "Changeover/Setup", "Minor Stoppages"],
+                    values=[loss1, loss2, loss3],
+                    marker_colors=["#CC0000", "#FFD700", "#FF6B00"],
+                    hole=0.4
+                ))
+                loss_fig.update_layout(
+                    title="Downtime Sources",
+                    plot_bgcolor="#0a0a0a",
+                    paper_bgcolor="#0a0a0a",
+                    font_color="#ffffff",
+                    height=300
+                )
+                st.plotly_chart(loss_fig, use_container_width=True)
+
+        with col2:
+            biggest_loss = max(
+                [("Machine Breakdown", loss1), ("Changeover/Setup", loss2), ("Minor Stoppages", loss3)],
+                key=lambda x: x[1]
+            )
+            if oee >= 85:
+                st.success(f"World class OEE achieved at {oee:.1f}%! Focus on maintaining current performance.")
+            else:
+                st.warning(f"Your OEE of {oee:.1f}% is {world_class_oee - oee:.1f}% below world class standard of 85%.")
+                st.info(f"Your biggest loss is {biggest_loss[0]} at {biggest_loss[1]:.0f} mins per day. This should be your first target for improvement.")
+                lost_units = (downtime / ideal_cycle_time) if ideal_cycle_time > 0 else 0
+                st.info(f"Your {downtime:.0f} mins of daily downtime is costing you approximately {lost_units:.0f} units per day in lost production.")
+
+    # ════════════════════════════════════════
+    # TOOL 3: DEFECT PARETO ANALYSIS
+    # ════════════════════════════════════════
+    elif tool == "Defect Pareto Analysis":
+        st.header("Defect Pareto Analysis")
+        st.write("Enter your defect types and quantities. SPO will identify which defects are causing 80% of your quality problems.")
+
+        st.subheader("Enter Your Defect Data")
+        num_defects = st.number_input("Number of Defect Types", min_value=2, max_value=10, value=5, step=1)
+
+        defects = []
+        cols = st.columns(2)
+        for i in range(int(num_defects)):
+            col = cols[i % 2]
+            with col:
+                name = st.text_input(f"Defect Type {i+1}", value=f"Defect {i+1}", key=f"dname_{i}")
+                qty = st.number_input(f"Quantity", min_value=0, max_value=10000, value=max(1, 50 - i*8), step=1, key=f"dqty_{i}")
+                if qty > 0:
+                    defects.append({"name": name, "qty": qty})
+
+        if defects:
+            st.divider()
+            st.header("Pareto Analysis Results")
+
+            defects_sorted = sorted(defects, key=lambda x: x["qty"], reverse=True)
+            total = sum(d["qty"] for d in defects_sorted)
+            cumulative = 0
+            cumulative_pcts = []
+            individual_pcts = []
+
+            for d in defects_sorted:
+                cumulative += d["qty"]
+                cumulative_pcts.append((cumulative / total) * 100)
+                individual_pcts.append((d["qty"] / total) * 100)
+
+            names = [d["name"] for d in defects_sorted]
+            qtys = [d["qty"] for d in defects_sorted]
+
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=names,
+                y=qtys,
+                name="Defect Count",
+                marker_color="#CC0000",
+                text=[f"{q}" for q in qtys],
+                textposition="outside",
+                yaxis="y"
+            ))
+            fig.add_trace(go.Scatter(
+                x=names,
+                y=cumulative_pcts,
+                name="Cumulative %",
+                mode="lines+markers",
+                line=dict(color="#FFD700", width=2),
+                marker=dict(size=8),
+                yaxis="y2"
+            ))
+            fig.add_hline(y=80, line_dash="dash", line_color="#00CC00",
+                         annotation_text="80% Line",
+                         annotation_position="top right",
+                         yref="y2")
+            fig.update_layout(
+                title="Defect Pareto Chart — Focus on the bars left of the 80% line",
+                xaxis_title="Defect Type",
+                yaxis=dict(title="Defect Count", side="left"),
+                yaxis2=dict(title="Cumulative %", side="right", overlaying="y", range=[0, 110]),
+                plot_bgcolor="#0a0a0a",
+                paper_bgcolor="#0a0a0a",
+                font_color="#ffffff",
+                height=400,
+                legend=dict(x=0.7, y=0.1)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Find vital few
+            vital_few = []
+            cumulative_check = 0
+            for i, d in enumerate(defects_sorted):
+                cumulative_check += (d["qty"] / total) * 100
+                vital_few.append(d)
+                if cumulative_check >= 80:
+                    break
+
+            st.subheader("The Vital Few — Fix These First")
+            vital_pct = sum(d["qty"] for d in vital_few) / total * 100
+            st.markdown(f"""
+            <div style="background: rgba(232,0,29,0.04); border: 1px solid rgba(232,0,29,0.2); border-radius: 10px; padding: 16px 20px; margin-bottom: 16px;">
+                <p style="color: #cccccc; font-size: 0.9rem; margin: 0;">
+                    <b style="color: #CC0000;">{len(vital_few)} out of {len(defects_sorted)} defect types</b> are causing
+                    <b style="color: #CC0000;">{vital_pct:.1f}%</b> of your total quality problems.
+                    Fix these first and you will solve most of your quality issues.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            for i, d in enumerate(vital_few):
+                pct = (d["qty"] / total) * 100
+                st.markdown(f"""
+                <div style="background: #1a1a1a; border-left: 4px solid #CC0000; padding: 10px 16px; margin: 6px 0; border-radius: 0 8px 8px 0;">
+                    <span style="color: #CC0000; font-weight: 800;">#{i+1} Priority</span>
+                    <span style="color: #ffffff; margin-left: 10px; font-weight: 600;">{d['name']}</span>
+                    <span style="color: #888888; margin-left: 10px;">{d['qty']} units ({pct:.1f}% of all defects)</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            st.write("")
+            st.subheader("Total Defect Summary")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Total Defects", f"{total:,}")
+            with col2:
+                st.metric("Defect Types Analyzed", f"{len(defects_sorted)}")
+            with col3:
+                st.metric("Vital Few Defects", f"{len(vital_few)} types = {vital_pct:.0f}% of problem")
+
+    # ════════════════════════════════════════
+    # TOOL 4: MANPOWER PLANNING
+    # ════════════════════════════════════════
+    elif tool == "Manpower Planning Tool":
+        st.header("Manpower Planning Tool")
+        st.write("Enter your takt time and station cycle times. SPO will calculate the ideal number of workers per station and identify where you are over or understaffed.")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            takt_time = st.number_input(
+                "Takt Time (mins) — How often does a customer need one unit?",
+                min_value=0.1, max_value=480.0, value=15.0, step=0.1, format="%.1f"
+            )
+            efficiency_factor = st.number_input(
+                "Worker Efficiency Factor (%)",
+                min_value=50.0, max_value=100.0, value=85.0, step=1.0,
+                help="Typical worker efficiency is 80-90%. This accounts for fatigue, breaks and minor delays."
+            )
+        with col2:
+            num_stations = st.number_input("Number of Stations", min_value=2, max_value=20, value=5, step=1)
+            daily_demand = st.number_input("Daily Production Target (units)", min_value=1, max_value=10000, value=200, step=1)
+
+        st.write("")
+        st.subheader("Enter Station Data")
+
+        stations = []
+        cols = st.columns(3)
+        for i in range(int(num_stations)):
+            col = cols[i % 3]
+            with col:
+                name = st.text_input(f"Station {i+1} Name", value=f"Station {i+1}", key=f"mpname_{i}")
+                ct = st.number_input(f"Cycle Time (mins)", min_value=0.1, max_value=480.0, value=float(10 + i*3), step=0.1, format="%.1f", key=f"mpct_{i}")
+                current_workers = st.number_input(f"Current Workers", min_value=1, max_value=20, value=1, step=1, key=f"mpw_{i}")
+                stations.append({"name": name, "cycle_time": ct, "current_workers": current_workers})
+
+        if stations:
+            st.divider()
+            st.header("Manpower Planning Results")
+
+            adjusted_takt = takt_time * (efficiency_factor / 100)
+
+            results = []
+            for s in stations:
+                ideal_workers = s["cycle_time"] / adjusted_takt
+                ideal_workers_rounded = max(1, round(ideal_workers))
+                diff = ideal_workers_rounded - s["current_workers"]
+                if diff > 0:
+                    status = "Understaffed"
+                    color = "#CC0000"
+                elif diff < 0:
+                    status = "Overstaffed"
+                    color = "#FFD700"
+                else:
+                    status = "Optimal"
+                    color = "#00CC00"
+                results.append({
+                    "name": s["name"],
+                    "cycle_time": s["cycle_time"],
+                    "current_workers": s["current_workers"],
+                    "ideal_workers": ideal_workers,
+                    "ideal_workers_rounded": ideal_workers_rounded,
+                    "diff": diff,
+                    "status": status,
+                    "color": color
+                })
+
+            total_current = sum(r["current_workers"] for r in results)
+            total_ideal = sum(r["ideal_workers_rounded"] for r in results)
+            total_diff = total_ideal - total_current
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid #ffffff; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Current Workers</p>
+                    <p style="color: #ffffff; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{total_current}</p>
+                </div>""", unsafe_allow_html=True)
+            with col2:
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Ideal Workers</p>
+                    <p style="color: #00CC00; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{total_ideal}</p>
+                </div>""", unsafe_allow_html=True)
+            with col3:
+                diff_color = "#CC0000" if total_diff > 0 else "#FFD700" if total_diff < 0 else "#00CC00"
+                diff_text = f"+{total_diff}" if total_diff > 0 else str(total_diff)
+                diff_label = "Need to Add" if total_diff > 0 else "Can Reduce" if total_diff < 0 else "Perfectly Balanced"
+                st.markdown(f"""<div style="background: #1a1a1a; border: 2px solid {diff_color}; border-radius: 10px; padding: 20px; text-align: center;">
+                    <p style="color: #ffffff; margin: 0; font-size: 0.85rem;">Difference</p>
+                    <p style="color: {diff_color}; font-size: 2.5rem; font-weight: 900; margin: 8px 0;">{diff_text}</p>
+                    <p style="color: {diff_color}; font-size: 0.78rem; margin: 0;">{diff_label}</p>
+                </div>""", unsafe_allow_html=True)
+
+            st.write("")
+
+            # Station by station breakdown
+            st.subheader("Station by Station Breakdown")
+            for r in results:
+                diff_str = f"+{r['diff']}" if r['diff'] > 0 else str(r['diff'])
+                st.markdown(f"""
+                <div style="background: #1a1a1a; border-left: 4px solid {r['color']}; padding: 12px 16px; margin: 6px 0; border-radius: 0 8px 8px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <span style="color: {r['color']}; font-weight: 800; font-size: 0.9rem;">{r['status']}</span>
+                        <span style="color: #ffffff; margin-left: 10px; font-weight: 600;">{r['name']}</span>
+                        <span style="color: #888888; margin-left: 10px; font-size: 0.82rem;">Cycle Time: {r['cycle_time']:.1f} mins</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="color: #888888; font-size: 0.82rem;">Current: {r['current_workers']} | Ideal: {r['ideal_workers_rounded']} | </span>
+                        <span style="color: {r['color']}; font-weight: 700;">{diff_str} workers</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Chart
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                name="Current Workers",
+                x=[r["name"] for r in results],
+                y=[r["current_workers"] for r in results],
+                marker_color="#444444",
+                text=[str(r["current_workers"]) for r in results],
+                textposition="outside"
+            ))
+            fig.add_trace(go.Bar(
+                name="Ideal Workers",
+                x=[r["name"] for r in results],
+                y=[r["ideal_workers_rounded"] for r in results],
+                marker_color="#CC0000",
+                text=[str(r["ideal_workers_rounded"]) for r in results],
+                textposition="outside"
+            ))
+            fig.update_layout(
+                title="Current vs Ideal Workers per Station",
+                xaxis_title="Station",
+                yaxis_title="Number of Workers",
+                barmode="group",
+                plot_bgcolor="#0a0a0a",
+                paper_bgcolor="#0a0a0a",
+                font_color="#ffffff",
+                height=350
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            st.write("")
+            understaffed = [r for r in results if r["status"] == "Understaffed"]
+            overstaffed = [r for r in results if r["status"] == "Overstaffed"]
+
+            if understaffed:
+                stations_str = ", ".join([r["name"] for r in understaffed])
+                st.warning(f"These stations are understaffed and creating bottlenecks: {stations_str}. Add workers here first.")
+            if overstaffed:
+                stations_str = ", ".join([r["name"] for r in overstaffed])
+                st.info(f"These stations are overstaffed: {stations_str}. Consider moving surplus workers to understaffed stations before hiring new ones.")
+            if not understaffed and not overstaffed:
+                st.success("Your manpower allocation is perfectly balanced for your current takt time!")
