@@ -689,13 +689,16 @@ elif st.session_state.page == "analysis_type":
                 st.session_state.analysis_type = "Deep"
                 st.session_state.page = "analysis"
                 st.rerun()
+        elif st.session_state.category == "Distribution":
+            if st.button("Deep Analysis\n\nRoute efficiency, picking time analysis, warehouse slotting and returns root cause analysis", use_container_width=True):
+                st.session_state.analysis_type = "Deep"
+                st.session_state.page = "analysis"
+                st.rerun()
         else:
-            st.markdown(f"""
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid #1a1a1a; border-radius: 10px; padding: 32px 20px; text-align: center; opacity: 0.4;">
-                <p style="color: #ffffff; font-size: 0.95rem; font-weight: 600; margin: 0 0 8px 0;">Deep Analysis</p>
-                <p style="color: #555555; font-size: 0.82rem; margin: 0;">Coming soon for {st.session_state.category}</p>
-            </div>
-            """, unsafe_allow_html=True)
+            if st.button("Deep Analysis\n\nSupplier scorecard, inventory ABC analysis, lead time breakdown and supply chain risk assessment", use_container_width=True):
+                st.session_state.analysis_type = "Deep"
+                st.session_state.page = "analysis"
+                st.rerun()
 
     st.write("")
     col1, col2, col3 = st.columns([1, 5, 1])
@@ -744,6 +747,10 @@ elif st.session_state.page == "analysis":
 
     if st.session_state.analysis_type == "Deep" and st.session_state.category == "Manufacturing":
         show_manufacturing_deep(st.session_state.industry, st.session_state.currency_symbol)
+    elif st.session_state.analysis_type == "Deep" and st.session_state.category == "Distribution":
+        show_distribution_deep(st.session_state.industry, st.session_state.currency_symbol)
+    elif st.session_state.analysis_type == "Deep" and st.session_state.category == "Supply Chain":
+        show_supply_chain_deep(st.session_state.industry, st.session_state.currency_symbol)
     elif st.session_state.category == "Manufacturing":
         show_manufacturing(st.session_state.industry, st.session_state.currency_symbol)
     elif st.session_state.category == "Distribution":
