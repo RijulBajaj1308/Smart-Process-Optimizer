@@ -3,6 +3,8 @@ import streamlit as st
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import io
+from reportlab.platypus import Image as RLImage
 import plotly.graph_objects as go
 import plotly.express as px
 from reportlab.lib.pagesizes import letter
@@ -14,7 +16,50 @@ from reportlab.lib.enums import TA_LEFT
 from datetime import datetime
 import io
 
-def generate_pdf(company_name, industry, tool_name, data_rows, insights, currency_symbol):
+
+def make_bar_chart(x_labels, y_values, colors_list, title, ylabel="", benchmark=None):
+    fig, ax = plt.subplots(figsize=(8, 3.2))
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#f9f9f9")
+    bars = ax.bar(x_labels, y_values, color=colors_list, alpha=0.9)
+    for bar, val in zip(bars, y_values):
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.3,
+                f"{val:.1f}", ha="center", va="bottom", fontsize=8)
+    if benchmark:
+        ax.axhline(y=benchmark, color="#000000", linestyle="--", linewidth=1.5, label=f"Target: {benchmark}")
+        ax.legend(fontsize=8)
+    ax.set_title(title, fontsize=10, fontweight="bold", pad=8)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.xticks(rotation=15, ha="right", fontsize=8)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
+    buf.seek(0)
+    plt.close()
+    return buf
+
+
+def make_pie_chart(labels, values, colors_list, title):
+    fig, ax = plt.subplots(figsize=(5, 3.2))
+    fig.patch.set_facecolor("#ffffff")
+    non_zero = [(l, v, c) for l, v, c in zip(labels, values, colors_list) if v > 0]
+    if non_zero:
+        lbls, vals, clrs = zip(*non_zero)
+        ax.pie(vals, labels=lbls, colors=clrs, autopct="%1.1f%%", startangle=90,
+               textprops={"fontsize": 8})
+    ax.set_title(title, fontsize=10, fontweight="bold")
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
+    buf.seek(0)
+    plt.close()
+    return buf
+
+
+def generate_pdf(company_name, industry, tool_name, data_rows, insights, currency_symbol, chart_buf=None):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.6*inch, bottomMargin=0.6*inch,
                             leftMargin=0.7*inch, rightMargin=0.7*inch)
@@ -47,6 +92,11 @@ def generate_pdf(company_name, industry, tool_name, data_rows, insights, currenc
     elements.append(meta_table)
     elements.append(Spacer(1, 4))
     elements.append(Table([['']], colWidths=[6*inch], style=[('LINEBELOW', (0,0), (-1,0), 1, colors.HexColor('#CC0000'))]))
+
+    if chart_buf:
+        elements.append(Paragraph("Analysis Chart", heading_style))
+        elements.append(RLImage(chart_buf, width=6.5*inch, height=3*inch))
+        elements.append(Spacer(1, 8))
 
     if data_rows:
         elements.append(Paragraph("Analysis Data", heading_style))
@@ -233,9 +283,17 @@ def show_distribution_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
+                chart = make_bar_chart(
+                    [r["name"] for r in route_data],
+                    [r["utilization"] for r in route_data],
+                    ["#CC0000" if r["utilization"] < 60 else "#FFD700" if r["utilization"] < 80 else "#00CC00" for r in route_data],
+                    "Vehicle Utilization by Route (%)",
+                    ylabel="Utilization (%)",
+                    benchmark=80
+                )
                 pdf = generate_pdf(
                     company_name or "Unnamed Company",
-                    industry, tool, data_rows, insights, currency_symbol
+                    industry, tool, data_rows, insights, currency_symbol, chart_buf=chart
                 )
                 st.download_button(
                     label="Download PDF Report",
@@ -351,7 +409,13 @@ def show_distribution_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_pie_chart(
+                    ["Actually Picking", "Travelling", "Searching"],
+                    [actual_pick_time_pct, travel_time_pct, search_time_pct],
+                    ["#00CC00", "#FFD700", "#CC0000"],
+                    "How Pickers Spend Their Time"
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
@@ -459,7 +523,14 @@ def show_distribution_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_bar_chart(
+                    ["Fast Movers (A)", "Medium Movers (B)", "Slow Movers (C)"],
+                    [fast_in_prime, medium_in_prime, slow_in_prime],
+                    ["#00CC00", "#FFD700", "#CC0000"],
+                    "SKUs in Prime Zone by Velocity Category",
+                    ylabel="Number of SKUs"
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
@@ -582,7 +653,13 @@ def show_distribution_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_pie_chart(
+                    [r for r, v in reasons_sorted],
+                    [v for r, v in reasons_sorted],
+                    ["#CC0000", "#FF6B00", "#FFD700", "#888888", "#444444", "#222222", "#111111"][:len(reasons_sorted)],
+                    "Return Reasons Breakdown"
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)

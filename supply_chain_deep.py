@@ -3,6 +3,8 @@ import streamlit as st
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import io
+from reportlab.platypus import Image as RLImage
 import plotly.graph_objects as go
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -13,7 +15,50 @@ from reportlab.lib.enums import TA_LEFT
 from datetime import datetime
 import io
 
-def generate_pdf(company_name, industry, tool_name, data_rows, insights, currency_symbol):
+
+def make_bar_chart(x_labels, y_values, colors_list, title, ylabel="", benchmark=None):
+    fig, ax = plt.subplots(figsize=(8, 3.2))
+    fig.patch.set_facecolor("#ffffff")
+    ax.set_facecolor("#f9f9f9")
+    bars = ax.bar(x_labels, y_values, color=colors_list, alpha=0.9)
+    for bar, val in zip(bars, y_values):
+        ax.text(bar.get_x() + bar.get_width()/2., bar.get_height() + 0.3,
+                f"{val:.1f}", ha="center", va="bottom", fontsize=8)
+    if benchmark:
+        ax.axhline(y=benchmark, color="#000000", linestyle="--", linewidth=1.5, label=f"Target: {benchmark}")
+        ax.legend(fontsize=8)
+    ax.set_title(title, fontsize=10, fontweight="bold", pad=8)
+    if ylabel:
+        ax.set_ylabel(ylabel, fontsize=9)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    plt.xticks(rotation=15, ha="right", fontsize=8)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
+    buf.seek(0)
+    plt.close()
+    return buf
+
+
+def make_pie_chart(labels, values, colors_list, title):
+    fig, ax = plt.subplots(figsize=(5, 3.2))
+    fig.patch.set_facecolor("#ffffff")
+    non_zero = [(l, v, c) for l, v, c in zip(labels, values, colors_list) if v > 0]
+    if non_zero:
+        lbls, vals, clrs = zip(*non_zero)
+        ax.pie(vals, labels=lbls, colors=clrs, autopct="%1.1f%%", startangle=90,
+               textprops={"fontsize": 8})
+    ax.set_title(title, fontsize=10, fontweight="bold")
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format="png", dpi=150, bbox_inches="tight", facecolor="white")
+    buf.seek(0)
+    plt.close()
+    return buf
+
+
+def generate_pdf(company_name, industry, tool_name, data_rows, insights, currency_symbol, chart_buf=None):
     buffer = io.BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.6*inch, bottomMargin=0.6*inch,
                             leftMargin=0.7*inch, rightMargin=0.7*inch)
@@ -195,7 +240,15 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_bar_chart(
+                    [s["name"] for s in scored_sorted],
+                    [s["score"] for s in scored_sorted],
+                    [s["risk_color"] for s in scored_sorted],
+                    "Supplier Performance Scores",
+                    ylabel="Score (0-100)",
+                    benchmark=80
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
@@ -325,7 +378,14 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_bar_chart(
+                    [c["name"] for c in abc_cats],
+                    [c["annual_value"] for c in abc_cats],
+                    [c["color"] for c in abc_cats],
+                    "Annual Usage Value by Category (Red=A, Yellow=B, Green=C)",
+                    ylabel="Annual Value"
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
@@ -434,7 +494,15 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_bar_chart(
+                    [c["name"] for c in components],
+                    [c["days"] for c in components],
+                    ["#00CC00" if c["value_add"] else "#CC0000" for c in components],
+                    "Lead Time Components (Green=Value Adding, Red=Non-Value Adding)",
+                    ylabel="Days",
+                    benchmark=customer_required_lt
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
@@ -549,7 +617,15 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
             st.divider()
             st.header("Generate Report")
             if st.button("Generate Report", use_container_width=True):
-                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol)
+                chart = make_bar_chart(
+                    [i["name"] for i in items_sorted],
+                    [i["risk_score"] for i in items_sorted],
+                    [i["risk_color"] for i in items_sorted],
+                    "Supply Chain Risk Scores by Item",
+                    ylabel="Risk Score",
+                    benchmark=7
+                )
+                pdf = generate_pdf(company_name or "Unnamed Company", industry, tool, data_rows, insights, currency_symbol, chart_buf=chart)
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
