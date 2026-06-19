@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch

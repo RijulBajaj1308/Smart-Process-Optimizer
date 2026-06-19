@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import plotly.graph_objects as go
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -258,6 +262,88 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
     return cause, rec
 
 
+
+def make_performance_chart(analysis, performance_labels):
+    kpis = list(analysis.keys())
+    your_vals = [analysis[k]['value'] for k in kpis]
+    bench_vals = [analysis[k]['benchmark'] for k in kpis]
+    bar_colors = []
+    for k in kpis:
+        if analysis[k]['status'] == 'Critical':
+            bar_colors.append('#CC0000')
+        elif analysis[k]['status'] == 'Needs Improvement':
+            bar_colors.append('#FFD700')
+        else:
+            bar_colors.append('#00CC00')
+    labels = [performance_labels.get(k, k).replace(' (%)', '').replace(' (mins)', '').replace(' (days)', '').replace(' (times/year)', '').replace(' (% of Revenue)', '') for k in kpis]
+    fig, ax = plt.subplots(figsize=(9, 3.5))
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#f9f9f9')
+    x = range(len(labels))
+    ax.bar([i - 0.2 for i in x], your_vals, width=0.35, color=bar_colors, alpha=0.9)
+    ax.bar([i + 0.2 for i in x], bench_vals, width=0.35, color='#444444', alpha=0.8)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, fontsize=7, rotation=20, ha='right')
+    ax.set_title('Your Performance vs Industry Benchmark', fontsize=11, fontweight='bold', pad=8)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    red_patch = mpatches.Patch(color='#CC0000', label='Critical')
+    yellow_patch = mpatches.Patch(color='#FFD700', label='Needs Improvement')
+    green_patch = mpatches.Patch(color='#00CC00', label='Good')
+    bench_patch = mpatches.Patch(color='#444444', label='Benchmark')
+    ax.legend(handles=[red_patch, yellow_patch, green_patch, bench_patch], fontsize=7, loc='upper right')
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    buf.seek(0)
+    plt.close()
+    return buf
+
+def make_risk_pie(critical, needs_improvement, good):
+    fig, ax = plt.subplots(figsize=(4, 3))
+    fig.patch.set_facecolor('#ffffff')
+    labels = ['Critical', 'Needs Improvement', 'Good']
+    sizes = [critical, needs_improvement, good]
+    clrs = ['#CC0000', '#FFD700', '#00CC00']
+    non_zero = [(l, s, c) for l, s, c in zip(labels, sizes, clrs) if s > 0]
+    if non_zero:
+        lbls, szs, cs = zip(*non_zero)
+        ax.pie(szs, labels=lbls, colors=cs, autopct='%1.0f%%', startangle=90, textprops={'fontsize': 9})
+        ax.set_title('Risk Distribution', fontsize=10, fontweight='bold')
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    buf.seek(0)
+    plt.close()
+    return buf
+
+def make_projected_outcome_chart(projections, performance_labels):
+    if not projections:
+        return None
+    kpis = list(projections.keys())
+    current_vals = [projections[k][0] for k in kpis]
+    projected_vals = [projections[k][1] for k in kpis]
+    labels = [performance_labels.get(k, k).replace(' (%)', '').replace(' (mins)', '').replace(' (days)', '').replace(' (times/year)', '').replace(' (% of Revenue)', '') for k in kpis]
+    fig, ax = plt.subplots(figsize=(8, 3.2))
+    fig.patch.set_facecolor('#ffffff')
+    ax.set_facecolor('#f9f9f9')
+    x = range(len(labels))
+    ax.bar([i - 0.2 for i in x], current_vals, width=0.35, color='#CC0000', alpha=0.9, label='Now')
+    ax.bar([i + 0.2 for i in x], projected_vals, width=0.35, color='#00CC00', alpha=0.9, label='Projected')
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(labels, fontsize=8, rotation=15, ha='right')
+    ax.set_title('Projected Outcome After Implementing Recommendations', fontsize=10, fontweight='bold', pad=8)
+    ax.legend(fontsize=8)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    plt.tight_layout()
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=150, bbox_inches='tight', facecolor='white')
+    buf.seek(0)
+    plt.close()
+    return buf
+
+
 def generate_pdf_report(company_name, category, industry, business_model, currency_symbol,
                           analysis, performance_labels, risk_score, risk_label,
                           root_causes, recommendations, priority_list, projections, pfmea_data=None):
@@ -326,8 +412,29 @@ def generate_pdf_report(company_name, category, industry, business_model, curren
     perf_table.setStyle(TableStyle(style_cmds))
     elements.append(perf_table)
 
+    if include_charts:
+        try:
+            from reportlab.platypus import Image as RLImage
+            perf_chart = make_performance_chart(analysis, performance_labels)
+            elements.append(Spacer(1, 8))
+            elements.append(RLImage(perf_chart, width=6.5*inch, height=2.6*inch))
+            elements.append(Spacer(1, 8))
+        except Exception:
+            pass
+
     elements.append(Paragraph("Overall Risk Assessment", heading_style))
     elements.append(Paragraph(f"<b>Risk Score:</b> {risk_score} / 100 &nbsp;&nbsp; <b>Status:</b> {risk_label}", body_style))
+
+    if include_charts:
+        try:
+            from reportlab.platypus import Image as RLImage
+            critical_count = sum(1 for r in analysis.values() if r['status'] == 'Critical')
+            needs_count = sum(1 for r in analysis.values() if r['status'] == 'Needs Improvement')
+            good_count = sum(1 for r in analysis.values() if r['status'] == 'Good')
+            risk_chart = make_risk_pie(critical_count, needs_count, good_count)
+            elements.append(RLImage(risk_chart, width=3*inch, height=2.3*inch))
+        except Exception:
+            pass
 
     if root_causes:
         elements.append(Paragraph("What is Happening", heading_style))
