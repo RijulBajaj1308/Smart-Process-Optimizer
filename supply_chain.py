@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
 import plotly.graph_objects as go
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_LEFT
+from datetime import datetime
+import io
 
 supply_chain_benchmarks = {
     "Automotive Supply Chain": {
@@ -206,7 +214,7 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
     elif kpi == "lead_time_flexibility":
         if status == "Critical":
             cause = f"Your supply chain can only flex its lead time by {value:.3f}% when you need urgent delivery, against a benchmark of {benchmark:.3f}%. When you need materials faster than normal your supply chain cannot respond. This makes you vulnerable to stockouts during demand spikes."
-            rec = f"At {value:.3f}% lead time flexibility you are too rigid. Negotiate expedite agreements with your top 5 suppliers now so you have a defined fast track option when you need it. Pay for the capacity reservation — it is worth it."
+            rec = f"At {value:.3f}% lead time flexibility you are too rigid. Negotiate expedite agreements with your top 5 suppliers now so you have a defined fast track option when you need it."
         else:
             cause = f"Your lead time flexibility of {value:.3f}% is {gap:.3f}% below benchmark. You can flex your supply chain somewhat but not as much as industry leaders."
             rec = f"Improving lead time flexibility by {gap:.3f}% requires developing better relationships with your key suppliers so they prioritize your urgent orders when needed."
@@ -214,7 +222,7 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
     elif kpi == "sourcing_flexibility":
         if status == "Critical":
             cause = f"Only {value:.3f}% of your critical materials have backup suppliers against a benchmark of {benchmark:.3f}%. You have significant single source dependency risk. If any of those single source suppliers fails to deliver you have no alternative and your production stops."
-            rec = f"At {value:.3f}% sourcing flexibility you are dangerously exposed to supply disruption. Identify your top 10 single source materials and start qualifying alternate suppliers for them immediately. Even having one approved backup changes your risk profile significantly."
+            rec = f"At {value:.3f}% sourcing flexibility you are dangerously exposed to supply disruption. Identify your top 10 single source materials and start qualifying alternate suppliers for them immediately."
         else:
             cause = f"Your sourcing flexibility of {value:.3f}% is {gap:.3f}% below benchmark. You have backup suppliers for most critical materials but some gaps remain."
             rec = f"Closing a {gap:.3f}% sourcing flexibility gap means qualifying backup suppliers for your remaining single source materials. Prioritize by spend and criticality to production."
@@ -224,6 +232,118 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
         rec = f"Focus on understanding why this metric is {gap:.3f} units below benchmark and develop a specific action plan to close the gap within the next 30 days."
 
     return cause, rec
+
+
+def generate_pdf_report(company_name, category, industry, business_model, currency_symbol,
+                          analysis, performance_labels, risk_score, risk_label,
+                          root_causes, recommendations, priority_list, projections):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.6*inch, bottomMargin=0.6*inch,
+                             leftMargin=0.7*inch, rightMargin=0.7*inch)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Title'], textColor=colors.HexColor('#CC0000'), fontSize=20, spaceAfter=2)
+    subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#555555'), spaceAfter=14)
+    heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], textColor=colors.HexColor('#CC0000'), fontSize=13, spaceBefore=16, spaceAfter=8)
+    body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=9.5, leading=14, spaceAfter=8, alignment=TA_LEFT)
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#999999'))
+
+    elements.append(Paragraph("Smart Process Optimizer", title_style))
+    elements.append(Paragraph("Supply Chain Analysis Report", subtitle_style))
+
+    meta_data = [
+        ["Company / Organization", company_name],
+        ["Category", category],
+        ["Industry", industry],
+        ["Business Model", business_model],
+        ["Report Date", datetime.now().strftime("%B %d, %Y")],
+    ]
+    meta_table = Table(meta_data, colWidths=[1.7*inch, 4.3*inch])
+    meta_table.setStyle(TableStyle([
+        ('FONTSIZE', (0,0), (-1,-1), 9.5),
+        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#CC0000')),
+        ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+        ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+    ]))
+    elements.append(meta_table)
+    elements.append(Spacer(1, 4))
+    elements.append(Table([['']], colWidths=[6*inch], style=[('LINEBELOW', (0,0), (-1,0), 1, colors.HexColor('#CC0000'))]))
+
+    elements.append(Paragraph("Performance Analysis", heading_style))
+    perf_rows = [["Metric", "Your Number", "Benchmark", "Status"]]
+    for kpi, result in analysis.items():
+        perf_rows.append([
+            performance_labels.get(kpi, kpi),
+            f"{result['value']:.3f}",
+            f"{result['benchmark']:.3f}",
+            result['status']
+        ])
+    perf_table = Table(perf_rows, colWidths=[2.3*inch, 1.3*inch, 1.3*inch, 1.1*inch])
+    style_cmds = [
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+    ]
+    for i, (kpi, result) in enumerate(analysis.items()):
+        row_idx = i + 1
+        if result['status'] == 'Critical':
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#CC0000')))
+        elif result['status'] == 'Needs Improvement':
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#B8860B')))
+        else:
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#008000')))
+    perf_table.setStyle(TableStyle(style_cmds))
+    elements.append(perf_table)
+
+    elements.append(Paragraph("Overall Risk Assessment", heading_style))
+    elements.append(Paragraph(f"<b>Risk Score:</b> {risk_score} / 100 &nbsp;&nbsp; <b>Status:</b> {risk_label}", body_style))
+
+    if root_causes:
+        elements.append(Paragraph("What is Happening", heading_style))
+        for cause in root_causes:
+            elements.append(Paragraph(f"&bull; {cause}", body_style))
+
+    if recommendations:
+        elements.append(Paragraph("What You Should Do", heading_style))
+        for rec in recommendations:
+            elements.append(Paragraph(f"&bull; {rec}", body_style))
+
+    if priority_list:
+        elements.append(Paragraph("Priority Order to Fix", heading_style))
+        for i, item in enumerate(priority_list, 1):
+            elements.append(Paragraph(f"{i}. {item}", body_style))
+
+    if projections:
+        elements.append(Paragraph("Projected Outcome", heading_style))
+        proj_rows = [["Metric", "Now", "Projected"]]
+        for kpi, (current, projected) in projections.items():
+            proj_rows.append([performance_labels.get(kpi, kpi), f"{current:.3f}", f"{projected:.3f}"])
+        proj_table = Table(proj_rows, colWidths=[2.5*inch, 1.75*inch, 1.75*inch])
+        proj_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,-1), 9),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+        ]))
+        elements.append(proj_table)
+
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("Generated by Smart Process Optimizer (SPO) - smart-process-optimizer.streamlit.app", footer_style))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
 
 def show_supply_chain(industry, currency_symbol="$"):
     benchmarks = supply_chain_benchmarks[industry]
@@ -256,7 +376,9 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     analysis = analyze_kpis(kpi_data, benchmarks)
 
-    # Performance Cards
+    company_name = st.text_input("Company / Organization Name", placeholder="e.g. Tata Motors")
+    st.divider()
+
     st.header("Performance Analysis")
     st.caption(f"Benchmarks based on {industry} standards in India")
     col1, col2, col3 = st.columns(3)
@@ -293,7 +415,6 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Risk Assessment
     st.header("Overall Supply Chain Risk Assessment")
 
     critical_count = sum(1 for r in analysis.values() if r['status'] == "Critical")
@@ -340,7 +461,6 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Dynamic Root Causes and Recommendations
     st.header("What is Wrong and How to Fix It")
     st.caption(f"Analysis based on your actual numbers compared to {industry} benchmark")
 
@@ -351,11 +471,7 @@ def show_supply_chain(industry, currency_symbol="$"):
     for kpi, result in analysis.items():
         if result["status"] in ["Needs Improvement", "Critical"]:
             cause, rec = generate_dynamic_insights(
-                kpi,
-                result["value"],
-                result["benchmark"],
-                result["gap"],
-                result["status"]
+                kpi, result["value"], result["benchmark"], result["gap"], result["status"]
             )
             root_causes.append(cause)
             recommendations.append(rec)
@@ -386,16 +502,17 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Action Priority Score
     st.header("What to Fix First")
     st.write("Focus on these areas first for maximum impact:")
 
     priority_scores = calculate_priority_score(analysis)
     priority_rank = 1
+    priority_list_names = []
 
     for kpi, score in priority_scores.items():
         if score > 0:
             result = analysis[kpi]
+            priority_list_names.append(performance_labels[kpi])
             if result['status'] == "Critical":
                 color = "#CC0000"
                 icon = "🚨"
@@ -414,10 +531,10 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Before vs After
-    st.header("Where You Are vs Where You Could Be")
+    st.header("Projected Outcome")
     st.write("Based on your numbers here is a realistic projection if you act on the recommendations:")
 
+    projections_data = {}
     if improvements:
         col1, col2, col3 = st.columns(3)
         cols = [col1, col2, col3]
@@ -425,6 +542,7 @@ def show_supply_chain(industry, currency_symbol="$"):
         for i, (kpi, projected) in enumerate(improvements.items()):
             col = cols[i % 3]
             current = kpi_data[kpi]
+            projections_data[kpi] = (current, projected)
             with col:
                 if kpi in ["supplier_otd", "inventory_turnover", "order_fulfillment_rate",
                            "forecast_accuracy", "supplier_quality_rate",
@@ -439,7 +557,7 @@ def show_supply_chain(industry, currency_symbol="$"):
                     <div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; margin: 5px 0; text-align: center;">
                         <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{performance_labels[kpi]}</p>
                         <p style="color: #CC0000; font-size: 1.2rem; margin: 5px 0;">Now: {current:.3f}</p>
-                        <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">After: {projected:.3f}</p>
+                        <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">Projected: {projected:.3f}</p>
                         <p style="color: #00CC00; font-size: 1rem; font-weight: 800; margin: 0;">{change_str} improvement</p>
                     </div>
                 """, unsafe_allow_html=True)
@@ -448,7 +566,6 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # What-If Simulator
     st.header("Play With the Numbers")
     st.write("Change the values below to see what happens to your results")
     col1, col2 = st.columns(2)
@@ -484,32 +601,32 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Money Saved Calculator
-    st.header("How Much Money Could You Save?")
-    col1, col2 = st.columns(2)
+    st.header("Generate Report")
+    st.write("Download a complete PDF report of this analysis to share or keep for your records")
 
-    with col1:
-        annual_revenue = st.number_input(f"Annual Revenue ({currency_symbol})", min_value=0.000, value=5000000.000, step=1000.000, format="%.3f")
-        inventory_holding_cost = st.number_input(f"Annual Inventory Holding Cost ({currency_symbol})", min_value=0.000, value=200000.000, step=1000.000, format="%.3f")
+    if st.button("Generate Report", use_container_width=True):
+        report_company = company_name if company_name else "Unnamed Company"
 
-    with col2:
-        supplier_defect_cost = st.number_input(f"Annual Supplier Defect Cost ({currency_symbol})", min_value=0.000, value=100000.000, step=1000.000, format="%.3f")
-        logistics_cost = st.number_input(f"Annual Logistics Cost ({currency_symbol})", min_value=0.000, value=300000.000, step=1000.000, format="%.3f")
+        pdf_buffer = generate_pdf_report(
+            company_name=report_company,
+            category="Supply Chain",
+            industry=industry,
+            business_model=st.session_state.get("business_model", "N/A"),
+            currency_symbol=currency_symbol,
+            analysis=analysis,
+            performance_labels=performance_labels,
+            risk_score=risk_score,
+            risk_label=risk_label,
+            root_causes=root_causes,
+            recommendations=recommendations,
+            priority_list=priority_list_names,
+            projections=projections_data
+        )
 
-    cost_reduction_savings = annual_revenue * (cost_improvement / 100)
-    inventory_savings = inventory_holding_cost * (dio_improvement / days_inventory_outstanding) if days_inventory_outstanding > 0 else 0
-    quality_savings = supplier_defect_cost * (forecast_improvement / 100)
-    total_savings = cost_reduction_savings + inventory_savings + quality_savings
-
-    st.subheader("Projected Annual Savings")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric("Supply Chain Cost Savings", f"{currency_symbol}{cost_reduction_savings:,.3f}")
-        st.metric("Inventory Savings", f"{currency_symbol}{inventory_savings:,.3f}")
-
-    with col2:
-        st.metric("Quality Savings", f"{currency_symbol}{quality_savings:,.3f}")
-
-    with col3:
-        st.metric("Total Annual Savings", f"{currency_symbol}{total_savings:,.3f}", delta=f"+{currency_symbol}{total_savings:,.0f}")
+        st.download_button(
+            label="Download PDF Report",
+            data=pdf_buffer,
+            file_name=f"SPO_Report_{report_company.replace(' ', '_')}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )

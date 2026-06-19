@@ -1,5 +1,14 @@
+# -*- coding: utf-8 -*-
 import streamlit as st
 import plotly.graph_objects as go
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_LEFT
+from datetime import datetime
+import io
 
 manufacturing_benchmarks = {
     "Automotive": {
@@ -126,7 +135,6 @@ def calculate_priority_score(analysis):
     return dict(sorted(scores.items(), key=lambda x: x[1], reverse=True))
 
 def generate_dynamic_insights(kpi, value, benchmark, gap, status):
-    # Higher is better KPIs
     if kpi == "efficiency_rate":
         if status == "Critical":
             cause = f"Your efficiency is {gap:.1f}% below the industry benchmark of {benchmark:.1f}%. You are losing more than 1 in every {round(100/gap):.0f} hours of productive time. This is a serious problem that is directly costing you output and revenue every single day."
@@ -151,7 +159,6 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
             cause = f"Your ROI is {gap:.1f}% below benchmark. You are generating returns but leaving money on the table compared to industry leaders."
             rec = f"Closing this {gap:.1f}% ROI gap requires targeting your biggest cost inefficiencies. Review your waste costs, rejection costs and downtime costs to find where the biggest savings opportunity lies."
 
-    # Lower is better KPIs
     elif kpi == "cycle_time":
         if status == "Critical":
             cause = f"Your cycle time of {value:.1f} mins is {gap:.1f} mins above the benchmark of {benchmark:.1f} mins. Your production is running significantly slower than industry standard. This means fewer units produced per shift and higher cost per unit."
@@ -190,6 +197,141 @@ def generate_dynamic_insights(kpi, value, benchmark, gap, status):
 
     return cause, rec
 
+
+def generate_pdf_report(company_name, category, industry, business_model, currency_symbol,
+                          analysis, performance_labels, risk_score, risk_label,
+                          root_causes, recommendations, priority_list, projections, pfmea_data=None):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=0.6*inch, bottomMargin=0.6*inch,
+                             leftMargin=0.7*inch, rightMargin=0.7*inch)
+    styles = getSampleStyleSheet()
+    elements = []
+
+    title_style = ParagraphStyle('TitleStyle', parent=styles['Title'], textColor=colors.HexColor('#CC0000'), fontSize=20, spaceAfter=2)
+    subtitle_style = ParagraphStyle('SubtitleStyle', parent=styles['Normal'], fontSize=11, textColor=colors.HexColor('#555555'), spaceAfter=14)
+    heading_style = ParagraphStyle('HeadingStyle', parent=styles['Heading2'], textColor=colors.HexColor('#CC0000'), fontSize=13, spaceBefore=16, spaceAfter=8)
+    body_style = ParagraphStyle('BodyStyle', parent=styles['Normal'], fontSize=9.5, leading=14, spaceAfter=8, alignment=TA_LEFT)
+    footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=8, textColor=colors.HexColor('#999999'))
+
+    elements.append(Paragraph("Smart Process Optimizer", title_style))
+    elements.append(Paragraph("Performance Analysis Report", subtitle_style))
+
+    meta_data = [
+        ["Company / Plant", company_name],
+        ["Category", category],
+        ["Industry", industry],
+        ["Business Model", business_model],
+        ["Report Date", datetime.now().strftime("%B %d, %Y")],
+    ]
+    meta_table = Table(meta_data, colWidths=[1.7*inch, 4.3*inch])
+    meta_table.setStyle(TableStyle([
+        ('FONTSIZE', (0,0), (-1,-1), 9.5),
+        ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#CC0000')),
+        ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+        ('FONTNAME', (1,0), (1,-1), 'Helvetica'),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 2),
+    ]))
+    elements.append(meta_table)
+    elements.append(Spacer(1, 4))
+    elements.append(Table([['']], colWidths=[6*inch], style=[('LINEBELOW', (0,0), (-1,0), 1, colors.HexColor('#CC0000'))]))
+
+    elements.append(Paragraph("Performance Analysis", heading_style))
+    perf_rows = [["Metric", "Your Number", "Benchmark", "Status"]]
+    for kpi, result in analysis.items():
+        perf_rows.append([
+            performance_labels.get(kpi, kpi),
+            f"{result['value']:.3f}",
+            f"{result['benchmark']:.3f}",
+            result['status']
+        ])
+    perf_table = Table(perf_rows, colWidths=[2.3*inch, 1.3*inch, 1.3*inch, 1.1*inch])
+    style_cmds = [
+        ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0,0), (-1,-1), 9),
+        ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+        ('TOPPADDING', (0,0), (-1,-1), 6),
+    ]
+    for i, (kpi, result) in enumerate(analysis.items()):
+        row_idx = i + 1
+        if result['status'] == 'Critical':
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#CC0000')))
+        elif result['status'] == 'Needs Improvement':
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#B8860B')))
+        else:
+            style_cmds.append(('TEXTCOLOR', (3, row_idx), (3, row_idx), colors.HexColor('#008000')))
+    perf_table.setStyle(TableStyle(style_cmds))
+    elements.append(perf_table)
+
+    elements.append(Paragraph("Overall Risk Assessment", heading_style))
+    elements.append(Paragraph(f"<b>Risk Score:</b> {risk_score} / 100 &nbsp;&nbsp; <b>Status:</b> {risk_label}", body_style))
+
+    if root_causes:
+        elements.append(Paragraph("What is Happening", heading_style))
+        for cause in root_causes:
+            elements.append(Paragraph(f"&bull; {cause}", body_style))
+
+    if recommendations:
+        elements.append(Paragraph("What You Should Do", heading_style))
+        for rec in recommendations:
+            elements.append(Paragraph(f"&bull; {rec}", body_style))
+
+    if priority_list:
+        elements.append(Paragraph("Priority Order to Fix", heading_style))
+        for i, item in enumerate(priority_list, 1):
+            elements.append(Paragraph(f"{i}. {item}", body_style))
+
+    if projections:
+        elements.append(Paragraph("Projected Outcome", heading_style))
+        proj_rows = [["Metric", "Now", "Projected"]]
+        for kpi, (current, projected) in projections.items():
+            proj_rows.append([performance_labels.get(kpi, kpi), f"{current:.3f}", f"{projected:.3f}"])
+        proj_table = Table(proj_rows, colWidths=[2.5*inch, 1.75*inch, 1.75*inch])
+        proj_table.setStyle(TableStyle([
+            ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#1a1a1a')),
+            ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+            ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0,0), (-1,-1), 9),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 6),
+            ('TOPPADDING', (0,0), (-1,-1), 6),
+        ]))
+        elements.append(proj_table)
+
+    if pfmea_data:
+        elements.append(Paragraph("Process Failure Mode and Effects Analysis (PFMEA)", heading_style))
+        pfmea_rows = [
+            ["Process Step", pfmea_data.get('process_step') or "Not specified"],
+            ["Failure Mode", pfmea_data.get('failure_mode') or "Not specified"],
+            ["Effect of Failure", pfmea_data.get('failure_effect') or "Not specified"],
+            ["Severity", str(pfmea_data.get('severity', 'N/A'))],
+            ["Occurrence", str(pfmea_data.get('occurrence', 'N/A'))],
+            ["Detection", str(pfmea_data.get('detection', 'N/A'))],
+            ["RPN Score", str(pfmea_data.get('rpn', 'N/A'))],
+            ["Risk Level", pfmea_data.get('risk_level', 'N/A')],
+        ]
+        pfmea_table = Table(pfmea_rows, colWidths=[1.7*inch, 4.3*inch])
+        pfmea_table.setStyle(TableStyle([
+            ('FONTSIZE', (0,0), (-1,-1), 9.5),
+            ('TEXTCOLOR', (0,0), (0,-1), colors.HexColor('#CC0000')),
+            ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor('#dddddd')),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('TOPPADDING', (0,0), (-1,-1), 5),
+        ]))
+        elements.append(pfmea_table)
+
+    elements.append(Spacer(1, 20))
+    elements.append(Paragraph("Generated by Smart Process Optimizer (SPO) - smart-process-optimizer.streamlit.app", footer_style))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
 def show_manufacturing(industry, currency_symbol="$"):
     benchmarks = manufacturing_benchmarks[industry]
 
@@ -216,6 +358,10 @@ def show_manufacturing(industry, currency_symbol="$"):
     }
 
     analysis = analyze_kpis(kpi_data, benchmarks)
+
+    # Company name field
+    company_name = st.text_input("Company / Plant Name", placeholder="e.g. Ahuja Radios")
+    st.divider()
 
     # Performance Cards
     st.header("Performance Analysis")
@@ -312,11 +458,7 @@ def show_manufacturing(industry, currency_symbol="$"):
     for kpi, result in analysis.items():
         if result["status"] in ["Needs Improvement", "Critical"]:
             cause, rec = generate_dynamic_insights(
-                kpi,
-                result["value"],
-                result["benchmark"],
-                result["gap"],
-                result["status"]
+                kpi, result["value"], result["benchmark"], result["gap"], result["status"]
             )
             root_causes.append(cause)
             recommendations.append(rec)
@@ -351,10 +493,12 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     priority_scores = calculate_priority_score(analysis)
     priority_rank = 1
+    priority_list_names = []
 
     for kpi, score in priority_scores.items():
         if score > 0:
             result = analysis[kpi]
+            priority_list_names.append(performance_labels[kpi])
             if result['status'] == "Critical":
                 color = "#CC0000"
                 icon = "🚨"
@@ -373,10 +517,11 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Before vs After
-    st.header("Where You Are vs Where You Could Be")
+    # Projected Outcome
+    st.header("Projected Outcome")
     st.write("Based on your numbers here is a realistic projection if you act on the recommendations:")
 
+    projections_data = {}
     if improvements:
         col1, col2, col3 = st.columns(3)
         cols = [col1, col2, col3]
@@ -384,6 +529,7 @@ def show_manufacturing(industry, currency_symbol="$"):
         for i, (kpi, projected) in enumerate(improvements.items()):
             col = cols[i % 3]
             current = kpi_data[kpi]
+            projections_data[kpi] = (current, projected)
             with col:
                 if kpi in ["efficiency_rate", "roi", "manpower_utilization"]:
                     change = projected - current
@@ -396,7 +542,7 @@ def show_manufacturing(industry, currency_symbol="$"):
                     <div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; margin: 5px 0; text-align: center;">
                         <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{performance_labels[kpi]}</p>
                         <p style="color: #CC0000; font-size: 1.2rem; margin: 5px 0;">Now: {current:.3f}</p>
-                        <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">After: {projected:.3f}</p>
+                        <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">Projected: {projected:.3f}</p>
                         <p style="color: #00CC00; font-size: 1rem; font-weight: 800; margin: 0;">{change_str} improvement</p>
                     </div>
                 """, unsafe_allow_html=True)
@@ -480,48 +626,6 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     st.divider()
 
-    # Money Saved Calculator
-    st.header("How Much Money Could You Save?")
-    st.write(f"Based on your numbers and SPO recommendations in {currency_symbol}")
-    col1, col2 = st.columns(2)
-
-    with col1:
-        annual_revenue = st.number_input(f"Annual Revenue ({currency_symbol})", min_value=0.000, value=1000000.000, step=1000.000, format="%.3f")
-        num_workers = st.number_input("Number of Workers", min_value=0, value=50, step=1)
-        avg_worker_salary = st.number_input(f"Average Worker Salary ({currency_symbol}/year)", min_value=0.000, value=30000.000, step=1000.000, format="%.3f")
-
-    with col2:
-        waste_cost = st.number_input(f"Annual Waste Cost ({currency_symbol})", min_value=0.000, value=50000.000, step=1000.000, format="%.3f")
-        downtime_cost = st.number_input(f"Annual Downtime Cost ({currency_symbol})", min_value=0.000, value=30000.000, step=1000.000, format="%.3f")
-        rejection_cost = st.number_input(f"Annual Rejection Cost ({currency_symbol})", min_value=0.000, value=20000.000, step=1000.000, format="%.3f")
-
-    efficiency_gain = improvements.get("efficiency_rate", efficiency_rate) - efficiency_rate
-    manpower_gain = improvements.get("manpower_utilization", manpower_utilization) - manpower_utilization
-    waste_gain = waste_percentage - improvements.get("waste_percentage", waste_percentage)
-    rejection_gain = rejection_rate - improvements.get("rejection_rate", rejection_rate)
-
-    efficiency_savings = annual_revenue * (abs(efficiency_gain) / 100)
-    manpower_savings = num_workers * avg_worker_salary * (abs(manpower_gain) / 100)
-    waste_savings = waste_cost * (abs(waste_gain) / 100)
-    rejection_savings = rejection_cost * (abs(rejection_gain) / 100)
-    total_savings = efficiency_savings + manpower_savings + waste_savings + rejection_savings
-
-    st.subheader("Projected Annual Savings Based on SPO Recommendations")
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.metric("Efficiency Savings", f"{currency_symbol}{efficiency_savings:,.3f}")
-        st.metric("Manpower Savings", f"{currency_symbol}{manpower_savings:,.3f}")
-
-    with col2:
-        st.metric("Waste Savings", f"{currency_symbol}{waste_savings:,.3f}")
-        st.metric("Rejection Savings", f"{currency_symbol}{rejection_savings:,.3f}")
-
-    with col3:
-        st.metric("Total Annual Savings", f"{currency_symbol}{total_savings:,.3f}", delta=f"+{currency_symbol}{total_savings:,.3f}")
-
-    st.divider()
-
     # PFMEA Module
     st.header("PFMEA Module")
     st.write("Identify and assess potential failure risks in your production process")
@@ -563,11 +667,59 @@ def show_manufacturing(industry, currency_symbol="$"):
                 <p style="color: #00CC00; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
 
     if rpn >= 200:
+        risk_level_text = "HIGH RISK"
         st.error(f"🚨 HIGH RISK — RPN of {rpn} requires immediate corrective action!")
         st.warning("Stop production at this process step and investigate immediately before resuming.")
     elif rpn >= 100:
+        risk_level_text = "MEDIUM RISK"
         st.warning(f"⚠️ MEDIUM RISK — RPN of {rpn} requires attention and monitoring.")
         st.info("Develop a corrective action plan and implement within 30 days.")
     else:
+        risk_level_text = "LOW RISK"
         st.success(f"✅ LOW RISK — RPN of {rpn} is acceptable.")
         st.info("Maintain current controls and monitor regularly.")
+
+    st.divider()
+
+    # Generate Report
+    st.header("Generate Report")
+    st.write("Download a complete PDF report of this analysis to share or keep for your records")
+
+    if st.button("Generate Report", use_container_width=True):
+        report_company = company_name if company_name else "Unnamed Company"
+
+        pfmea_data = {
+            "process_step": process_step,
+            "failure_mode": failure_mode,
+            "failure_effect": failure_effect,
+            "severity": severity,
+            "occurrence": occurrence,
+            "detection": detection,
+            "rpn": rpn,
+            "risk_level": risk_level_text
+        }
+
+        pdf_buffer = generate_pdf_report(
+            company_name=report_company,
+            category="Manufacturing",
+            industry=industry,
+            business_model=st.session_state.get("business_model", "N/A"),
+            currency_symbol=currency_symbol,
+            analysis=analysis,
+            performance_labels=performance_labels,
+            risk_score=risk_score,
+            risk_label=risk_label,
+            root_causes=root_causes,
+            recommendations=recommendations,
+            priority_list=priority_list_names,
+            projections=projections_data,
+            pfmea_data=pfmea_data
+        )
+
+        st.download_button(
+            label="Download PDF Report",
+            data=pdf_buffer,
+            file_name=f"SPO_Report_{report_company.replace(' ', '_')}.pdf",
+            mime="application/pdf",
+            use_container_width=True
+        )
