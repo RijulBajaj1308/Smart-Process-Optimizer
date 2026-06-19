@@ -4,6 +4,8 @@ from manufacturing import show_manufacturing
 from distribution import show_distribution
 from supply_chain import show_supply_chain
 from manufacturing_deep import show_manufacturing_deep
+from distribution_deep import show_distribution_deep
+from supply_chain_deep import show_supply_chain_deep
 
 st.set_page_config(
     page_title="Smart Process Optimizer",
@@ -212,35 +214,56 @@ st.markdown("""
     align-items: center;
     justify-content: center;
     padding: 36px 0 52px;
+    flex-wrap: wrap;
+    gap: 0;
 }
 
-.prog-node { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.prog-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
 
 .prog-dot {
-    width: 32px; height: 32px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    flex-shrink: 0;
 }
 .prog-dot.done { background: var(--red); color: #fff; }
 .prog-dot.curr {
     background: var(--red-dim);
-    border: 1.5px solid var(--red);
+    border: 2px solid var(--red);
     color: var(--red);
     box-shadow: 0 0 12px var(--red-glow);
 }
 .prog-dot.todo {
     background: var(--surface2);
-    border: 1.5px solid var(--border2);
+    border: 2px solid var(--border2);
     color: var(--text-muted);
 }
 
-.prog-lbl { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; }
+.prog-lbl {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    white-space: nowrap;
+}
 .prog-lbl.curr { color: var(--red); }
 
-.prog-seg { width: 40px; height: 1px; margin: 0 6px 20px; }
+.prog-seg {
+    width: 40px;
+    height: 1px;
+    margin: 0 4px 20px;
+    flex-shrink: 0;
+}
 .prog-seg.done { background: var(--red); }
 .prog-seg.todo { background: var(--border2); }
 
@@ -418,7 +441,7 @@ def init_session():
 init_session()
 
 def show_progress(current):
-    steps = [("01", "Category"), ("02", "Industry"), ("03", "Model"), ("04", "Analysis")]
+    steps = [("1", "Category"), ("2", "Industry"), ("3", "Model"), ("4", "Analysis")]
     html = '<div class="prog-track">'
     for i, (num, label) in enumerate(steps):
         n = i + 1
@@ -522,7 +545,7 @@ elif st.session_state.page == "category":
     show_progress(1)
     st.markdown("""
     <div class="step-header">
-        <div class="step-eyebrow">Step 01 of 04</div>
+        <div class="step-eyebrow">Step 1 of 4</div>
         <div class="step-title">What type of business are you?</div>
         <div class="step-sub">Click a card to continue</div>
     </div>
@@ -552,7 +575,7 @@ elif st.session_state.page == "industry":
     show_progress(2)
     st.markdown(f"""
     <div class="step-header">
-        <div class="step-eyebrow">Step 02 of 04 &nbsp;·&nbsp; {st.session_state.category}</div>
+        <div class="step-eyebrow">Step 2 of 4 &nbsp;·&nbsp; {st.session_state.category}</div>
         <div class="step-title">Select your industry</div>
         <div class="step-sub">Click a card to continue</div>
     </div>
@@ -609,7 +632,7 @@ elif st.session_state.page == "business_model":
     show_progress(3)
     st.markdown(f"""
     <div class="step-header">
-        <div class="step-eyebrow">Step 03 of 04 &nbsp;·&nbsp; {st.session_state.industry}</div>
+        <div class="step-eyebrow">Step 3 of 4 &nbsp;·&nbsp; {st.session_state.industry}</div>
         <div class="step-title">What is your business model?</div>
         <div class="step-sub">Click a card to continue</div>
     </div>
@@ -648,7 +671,7 @@ elif st.session_state.page == "analysis_type":
     show_progress(4)
     st.markdown(f"""
     <div class="step-header">
-        <div class="step-eyebrow">Step 04 of 04 &nbsp;·&nbsp; {st.session_state.industry}</div>
+        <div class="step-eyebrow">Step 4 of 4 &nbsp;·&nbsp; {st.session_state.industry}</div>
         <div class="step-title">Choose your analysis type</div>
         <div class="step-sub">Quick Analysis for an overview — Deep Analysis to pinpoint exact problems</div>
     </div>
