@@ -4,12 +4,15 @@ from supabase import create_client, Client
 import json
 from datetime import datetime
 
-SUPABASE_URL = "https://xrohccbmvunplgvyzhcz.supabase.co"
-SUPABASE_KEY = "sb_publishable_PYOnL43Surm8oiOpaIipsw_6nC8FImI"
-
 @st.cache_resource
 def get_supabase_client():
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+    try:
+        url = st.secrets["SUPABASE_URL"]
+        key = st.secrets["SUPABASE_KEY"]
+    except Exception:
+        url = "https://xrohccbmvunplgvyzhcz.supabase.co"
+        key = "sb_publishable_PYOnL43Surm8oiOpaIipsw_6nC8FImI"
+    return create_client(url, key)
 
 def sign_up(email, password, full_name):
     try:
