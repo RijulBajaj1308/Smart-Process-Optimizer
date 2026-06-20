@@ -415,6 +415,122 @@ hr { border-color: var(--border) !important; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+
+    /* ══════════════════════════════════════
+       MOBILE RESPONSIVE
+    ══════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+        /* Hero */
+        .hero-title {
+            font-size: 3rem !important;
+            letter-spacing: -2px !important;
+        }
+
+        .hero-title .accent {
+            font-size: 2.5rem !important;
+        }
+
+        .hero-body {
+            font-size: 0.9rem !important;
+        }
+
+        .hero-metrics {
+            max-width: 100% !important;
+        }
+
+        .h-metric-n {
+            font-size: 1.2rem !important;
+        }
+
+        .feat-row {
+            grid-template-columns: repeat(2, 1fr) !important;
+            max-width: 100% !important;
+        }
+
+        /* Corner brackets hidden on mobile */
+        .corner { display: none !important; }
+
+        /* Step header */
+        .step-title {
+            font-size: 1.4rem !important;
+        }
+
+        /* Cards — full width on mobile */
+        div[data-testid="stButton"] > button {
+            padding: 20px 16px !important;
+            font-size: 0.88rem !important;
+        }
+
+        /* Progress bar — smaller */
+        .prog-dot {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 0.72rem !important;
+        }
+
+        .prog-seg {
+            width: 24px !important;
+        }
+
+        .prog-lbl {
+            font-size: 0.52rem !important;
+        }
+
+        /* Analysis header */
+        .analysis-title {
+            font-size: 1.1rem !important;
+        }
+
+        /* Auth box */
+        .auth-box {
+            padding: 24px 20px !important;
+        }
+
+        /* Dashboard company cards */
+        .company-name {
+            font-size: 0.95rem !important;
+        }
+
+        .company-meta {
+            font-size: 0.7rem !important;
+        }
+
+        /* Hero metrics strip */
+        .h-metric {
+            padding: 12px 0 !important;
+        }
+
+        /* Sidebar notice on mobile */
+        [data-testid="stSidebar"] {
+            display: none !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 2.4rem !important;
+            letter-spacing: -1px !important;
+        }
+
+        .hero-title .accent {
+            font-size: 2rem !important;
+        }
+
+        .feat-row {
+            grid-template-columns: 1fr !important;
+        }
+
+        .hero-metrics {
+            flex-wrap: wrap !important;
+        }
+
+        .h-metric {
+            flex: 0 0 50% !important;
+            border-bottom: 1px solid var(--border2) !important;
+        }
+    }
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -794,6 +910,9 @@ elif st.session_state.page == "industry":
                      "General Supply Chain", "Pharmaceutical Supply Chain", "Textile and Apparel Supply Chain",
                      "Eco Friendly Packaging Supply Chain", "Pulp and Paper Supply Chain"]
 
+    st.markdown('''<div class="ind-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+    <style>@media(max-width:768px){.ind-grid{grid-template-columns:repeat(2,1fr) !important;}}</style>
+    </div>''', unsafe_allow_html=True)
     st.markdown('<div class="ind-grid">', unsafe_allow_html=True)
     for i in range(0, len(industries), 4):
         row = industries[i:i+4]
@@ -964,6 +1083,20 @@ elif st.session_state.page == "analysis":
     currency_options = {"USD ($)": "$", "INR (₹)": "₹", "GBP (£)": "£"}
     selected_currency = st.sidebar.selectbox("Currency", list(currency_options.keys()), index=0)
     st.session_state.currency_symbol = currency_options[selected_currency]
+
+    st.markdown("""
+    <div style="display:none;" class="mobile-sidebar-notice">
+        <div style="background:rgba(232,0,29,0.08);border:1px solid rgba(232,0,29,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;">
+            <p style="color:#E8001D;font-size:0.78rem;font-weight:700;margin:0 0 4px 0;">On Mobile</p>
+            <p style="color:#888;font-size:0.75rem;margin:0;">Tap the arrow at the top left to open the sidebar and enter your numbers.</p>
+        </div>
+    </div>
+    <style>
+    @media (max-width: 768px) {
+        .mobile-sidebar-notice { display: block !important; }
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
     st.sidebar.divider()
 
