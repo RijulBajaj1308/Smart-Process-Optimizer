@@ -7,6 +7,7 @@ from manufacturing_deep import show_manufacturing_deep
 from distribution_deep import show_distribution_deep
 from supply_chain_deep import show_supply_chain_deep
 from auth import sign_in, sign_up, sign_out, get_current_user, get_companies, create_company, get_analyses, delete_company
+from cross_analysis import show_cross_analysis
 
 st.set_page_config(
     page_title="Smart Process Optimizer",
@@ -589,32 +590,55 @@ def show_dashboard():
             else:
                 risk_color = "#444444"
 
-            col1, col2 = st.columns([4, 1])
-            with col1:
-                st.markdown(f"""
-                <div class="company-card">
-                    <div class="company-name">{company['name']}</div>
-                    <div class="company-meta">{company['category']} &nbsp;/&nbsp; {company['industry']} &nbsp;/&nbsp; {company['business_model']}</div>
-                    <div class="company-risk" style="color:{risk_color}">
-                        {"Risk Score: " + str(risk_score) + " — " + risk_label if risk_score else "No analysis yet"}
-                        &nbsp;&nbsp; <span style="color:#2C2C30;font-weight:400;">{analysis_count} analysis record{"s" if analysis_count != 1 else ""}</span>
-                    </div>
+            # Company card header
+            st.markdown(f"""
+            <div class="company-card">
+                <div class="company-name">{company['name']}</div>
+                <div class="company-meta">{company['category']} &nbsp;/&nbsp; {company['industry']} &nbsp;/&nbsp; {company['business_model']}</div>
+                <div class="company-risk" style="color:{risk_color}">
+                    {"Risk Score: " + str(risk_score) + " — " + risk_label if risk_score else "No analysis yet"}
+                    &nbsp;&nbsp; <span style="color:#2C2C30;font-weight:400;">{analysis_count} analysis record{"s" if analysis_count != 1 else ""}</span>
                 </div>
-                """, unsafe_allow_html=True)
+            </div>
+            """, unsafe_allow_html=True)
 
-            with col2:
-                st.write("")
-                st.write("")
-                if st.button("Continue", key=f"cont_{company['id']}", use_container_width=True):
-                    st.session_state.current_company = company
-                    st.session_state.category = company["category"]
-                    st.session_state.industry = company["industry"]
-                    st.session_state.business_model = company["business_model"]
-                    st.session_state.page = "analysis_type"
-                    st.rerun()
-                if st.button("Delete", key=f"del_{company['id']}", use_container_width=True):
-                    delete_company(company["id"])
-                    st.rerun()
+            # Tabs for each company
+            tab1, tab2, tab3 = st.tabs(["Overview", "Cross Analysis", "History"])
+
+            with tab1:
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Continue Analysis", key=f"cont_{company['id']}", use_container_width=True):
+                        st.session_state.current_company = company
+                        st.session_state.category = company["category"]
+                        st.session_state.industry = company["industry"]
+                        st.session_state.business_model = company["business_model"]
+                        st.session_state.page = "analysis_type"
+                        st.rerun()
+                with col2:
+                    if st.button("Delete Company", key=f"del_{company['id']}", use_container_width=True):
+                        delete_company(company["id"])
+                        st.rerun()
+
+            with tab2:
+                show_cross_analysis(company, analyses)
+
+            with tab3:
+                if analyses:
+                    for a in analyses:
+                        a_type = a.get("analysis_type", "Unknown")
+                        a_date = a.get("created_at", "")[:10]
+                        a_risk = a.get("risk_score", "N/A")
+                        a_label = a.get("risk_label", "")
+                        color = "#CC0000" if a_type == "Quick" else "#FFD700"
+                        st.markdown(f"""
+                        <div style="background:#1a1a1a;border-left:3px solid {color};padding:10px 14px;margin:6px 0;border-radius:0 6px 6px 0;">
+                            <span style="color:{color};font-weight:700;font-size:0.8rem;">{a_type} Analysis</span>
+                            <span style="color:#888;margin-left:10px;font-size:0.78rem;">{a_date} &nbsp;|&nbsp; Risk Score: {a_risk}/100 — {a_label}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.write("No analysis history yet.")
 
         st.divider()
 
