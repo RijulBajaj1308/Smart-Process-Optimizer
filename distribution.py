@@ -698,9 +698,10 @@ def show_distribution(industry, currency_symbol="$"):
                     icon = "✅"
                 else:
                     icon = "→"
+                action_text = item["action"]
                 st.markdown(f"""
                     <p style="color: #cccccc; font-size: 0.88rem; margin: 6px 0; padding-left: 8px;">
-                        {icon} &nbsp;{item["action"]}
+                        {icon} &nbsp;{action_text}
                     </p>
                 """, unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
@@ -857,7 +858,8 @@ def show_distribution(industry, currency_symbol="$"):
             recommendations=recommendations,
             priority_list=priority_list_names,
             projections=projections_data,
-            pfmea_data=pfmea_data
+            pfmea_data=pfmea_data,
+            include_charts=True
         )
 
         st.download_button(
