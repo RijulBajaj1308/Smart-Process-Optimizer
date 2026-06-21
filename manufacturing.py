@@ -564,13 +564,13 @@ def show_manufacturing(industry, currency_symbol="$"):
 
             st.markdown(f"""
                 <div style="
-                    background-color: #1a1a1a;
+                    background-color: #1A1D27;
                     border: 2px solid {color};
                     border-radius: 10px;
                     padding: 15px;
                     margin: 5px 0;
                     text-align: center;">
-                    <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{status_icons[result['status']]} {performance_labels[kpi]}</p>
+                    <p style="color: #E8EAF0; font-size: 0.9rem; margin: 0;">{status_icons[result['status']]} {performance_labels[kpi]}</p>
                     <p style="color: {color}; font-size: 2rem; font-weight: 800; margin: 5px 0;">{result['value']:.3f}</p>
                     <p style="color: #888888; font-size: 0.8rem; margin: 0;">Benchmark: {result['benchmark']:.3f}</p>
                 </div>
@@ -602,24 +602,24 @@ def show_manufacturing(industry, currency_symbol="$"):
 
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid {risk_color}; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Overall Risk Score</p>
+        st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid {risk_color}; border-radius: 10px; padding: 20px; text-align: center;">
+            <p style="color: #E8EAF0; margin: 0;">Overall Risk Score</p>
             <p style="color: {risk_color}; font-size: 3rem; font-weight: 900; margin: 0;">{risk_score}</p>
             <p style="color: {risk_color}; font-size: 1rem; margin: 0;">{risk_icon} {risk_label}</p>
         </div>""", unsafe_allow_html=True)
     with col2:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #CC0000; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Critical Areas</p>
+        st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #CC0000; border-radius: 10px; padding: 20px; text-align: center;">
+            <p style="color: #E8EAF0; margin: 0;">Critical Areas</p>
             <p style="color: #CC0000; font-size: 3rem; font-weight: 900; margin: 0;">{critical_count}</p>
         </div>""", unsafe_allow_html=True)
     with col3:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Needs Improvement</p>
+        st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #FFD700; border-radius: 10px; padding: 20px; text-align: center;">
+            <p style="color: #E8EAF0; margin: 0;">Needs Improvement</p>
             <p style="color: #FFD700; font-size: 3rem; font-weight: 900; margin: 0;">{needs_improvement_count}</p>
         </div>""", unsafe_allow_html=True)
     with col4:
-        st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 20px; text-align: center;">
-            <p style="color: #ffffff; margin: 0;">Performing Well</p>
+        st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #00CC00; border-radius: 10px; padding: 20px; text-align: center;">
+            <p style="color: #E8EAF0; margin: 0;">Performing Well</p>
             <p style="color: #00CC00; font-size: 3rem; font-weight: 900; margin: 0;">{good_count}</p>
         </div>""", unsafe_allow_html=True)
 
@@ -685,9 +685,9 @@ def show_manufacturing(industry, currency_symbol="$"):
                 icon = "⚠️"
 
             st.markdown(f"""
-                <div style="background-color: #1a1a1a; border-left: 4px solid {color}; padding: 10px 15px; margin: 5px 0; border-radius: 5px;">
+                <div style="background-color: #1A1D27; border-left: 4px solid {color}; padding: 10px 15px; margin: 5px 0; border-radius: 5px;">
                     <span style="color: {color}; font-weight: 800;">{icon} #{priority_rank}</span>
-                    <span style="color: #ffffff; margin-left: 10px;">{performance_labels[kpi]}</span>
+                    <span style="color: #E8EAF0; margin-left: 10px;">{performance_labels[kpi]}</span>
                     <span style="color: #888888; margin-left: 10px;">Your number: {result['value']:.3f} | Target: {result['benchmark']:.3f} | Gap: {result['gap']:.3f}</span>
                 </div>
             """, unsafe_allow_html=True)
@@ -772,8 +772,8 @@ def show_manufacturing(industry, currency_symbol="$"):
                     change_str = f"-{change:.3f}"
 
                 st.markdown(f"""
-                    <div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; margin: 5px 0; text-align: center;">
-                        <p style="color: #ffffff; font-size: 0.9rem; margin: 0;">{performance_labels[kpi]}</p>
+                    <div style="background-color: #1A1D27; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; margin: 5px 0; text-align: center;">
+                        <p style="color: #E8EAF0; font-size: 0.9rem; margin: 0;">{performance_labels[kpi]}</p>
                         <p style="color: #CC0000; font-size: 1.2rem; margin: 5px 0;">Now: {current:.3f}</p>
                         <p style="color: #00CC00; font-size: 1.2rem; margin: 5px 0;">Projected: {projected:.3f}</p>
                         <p style="color: #00CC00; font-size: 1rem; font-weight: 800; margin: 0;">{change_str} improvement</p>
@@ -887,16 +887,16 @@ def show_manufacturing(industry, currency_symbol="$"):
         st.metric("Detection", detection)
     with col4:
         if rpn >= 200:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #CC0000; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
+            st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #CC0000; border-radius: 10px; padding: 15px; text-align: center;">
+                <p style="color: #E8EAF0; margin: 0;">RPN Score</p>
                 <p style="color: #CC0000; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
         elif rpn >= 100:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #FFD700; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
+            st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #FFD700; border-radius: 10px; padding: 15px; text-align: center;">
+                <p style="color: #E8EAF0; margin: 0;">RPN Score</p>
                 <p style="color: #FFD700; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
         else:
-            st.markdown(f"""<div style="background-color: #1a1a1a; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; text-align: center;">
-                <p style="color: #ffffff; margin: 0;">RPN Score</p>
+            st.markdown(f"""<div style="background-color: #1A1D27; border: 2px solid #00CC00; border-radius: 10px; padding: 15px; text-align: center;">
+                <p style="color: #E8EAF0; margin: 0;">RPN Score</p>
                 <p style="color: #00CC00; font-size: 2rem; font-weight: 800; margin: 0;">{rpn}</p></div>""", unsafe_allow_html=True)
 
     if rpn >= 200:
