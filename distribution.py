@@ -178,7 +178,7 @@ def generate_action_plan(analysis, performance_labels, recommendations):
             "priority": "Needs Improvement"
         })
 
-    plan["week2"].append({"action": f"Map your current {category_name.lower()} process from start to finish and identify where time and resources are being lost", "priority": "Standard"})
+    plan["week2"].append({"action": "Map your current distribution process from start to finish and identify where time and resources are being lost", "priority": "Standard"})
     for kpi, result in critical_kpis:
         plan["week2"].append({"action": f"Conduct a detailed root cause analysis for {performance_labels.get(kpi, kpi)} — speak to your team to understand what is actually happening", "priority": "Critical"})
     for kpi, result in improvement_kpis[:2]:

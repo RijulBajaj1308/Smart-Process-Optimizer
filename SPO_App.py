@@ -1085,17 +1085,10 @@ elif st.session_state.page == "analysis":
     st.session_state.currency_symbol = currency_options[selected_currency]
 
     st.markdown("""
-    <div style="display:none;" class="mobile-sidebar-notice">
-        <div style="background:rgba(232,0,29,0.08);border:1px solid rgba(232,0,29,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;">
-            <p style="color:#E8001D;font-size:0.78rem;font-weight:700;margin:0 0 4px 0;">On Mobile</p>
-            <p style="color:#888;font-size:0.75rem;margin:0;">Tap the arrow at the top left to open the sidebar and enter your numbers.</p>
-        </div>
+    <div style="background:rgba(232,0,29,0.08);border:1px solid rgba(232,0,29,0.2);border-radius:8px;padding:12px 16px;margin-bottom:16px;">
+        <p style="color:#E8001D;font-size:0.78rem;font-weight:700;margin:0 0 4px 0;">How to Enter Your Numbers</p>
+        <p style="color:#888;font-size:0.75rem;margin:0;">Tap the <b style="color:#E8001D;">&gt;</b> arrow at the top left of your screen to open the sidebar and enter your KPI numbers.</p>
     </div>
-    <style>
-    @media (max-width: 768px) {
-        .mobile-sidebar-notice { display: block !important; }
-    }
-    </style>
     """, unsafe_allow_html=True)
 
     st.sidebar.divider()
