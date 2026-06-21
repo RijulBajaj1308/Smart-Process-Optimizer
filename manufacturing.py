@@ -512,6 +512,19 @@ def show_manufacturing(industry, currency_symbol="$"):
     rejection_rate = st.sidebar.number_input("Rejection Rate (%)", min_value=0.000, max_value=50.000, value=8.000, step=0.001, format="%.3f")
     lead_time = st.sidebar.number_input("Lead Time (days)", min_value=0.000, max_value=30.000, value=10.000, step=0.001, format="%.3f")
 
+    with st.expander("Enter Your KPI Numbers (tap to expand)", expanded=False):
+        st.caption(f"Benchmarks: {industry} Industry (India)")
+        col1, col2 = st.columns(2)
+        with col1:
+            efficiency_rate = st.number_input("Efficiency Rate (%)", min_value=0.000, max_value=100.000, value=efficiency_rate, step=0.001, format="%.3f", key="m_eff")
+            waste_percentage = st.number_input("Waste Percentage (%)", min_value=0.000, max_value=50.000, value=waste_percentage, step=0.001, format="%.3f", key="m_waste")
+            manpower_utilization = st.number_input("Manpower Utilization (%)", min_value=0.000, max_value=100.000, value=manpower_utilization, step=0.001, format="%.3f", key="m_mp")
+            lead_time = st.number_input("Lead Time (days)", min_value=0.000, max_value=30.000, value=lead_time, step=0.001, format="%.3f", key="m_lt")
+        with col2:
+            cycle_time = st.number_input("Cycle Time (mins)", min_value=0.000, max_value=120.000, value=cycle_time, step=0.001, format="%.3f", key="m_ct")
+            roi = st.number_input("ROI (%)", min_value=0.000, max_value=50.000, value=roi, step=0.001, format="%.3f", key="m_roi")
+            rejection_rate = st.number_input("Rejection Rate (%)", min_value=0.000, max_value=50.000, value=rejection_rate, step=0.001, format="%.3f", key="m_rej")
+
     kpi_data = {
         "efficiency_rate": efficiency_rate,
         "cycle_time": cycle_time,

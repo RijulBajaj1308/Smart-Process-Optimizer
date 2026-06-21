@@ -502,6 +502,19 @@ def show_distribution(industry, currency_symbol="$"):
     return_rate = st.sidebar.number_input("Return Rate (%)", min_value=0.000, max_value=30.000, value=5.000, step=0.001, format="%.3f")
     cost_per_order = st.sidebar.number_input(f"Cost per Order ({currency_symbol})", min_value=0.000, max_value=500.000, value=70.000, step=0.001, format="%.3f")
 
+    with st.expander("Enter Your KPI Numbers (tap to expand)", expanded=False):
+        st.caption(f"Benchmarks: {industry} (India)")
+        col1, col2 = st.columns(2)
+        with col1:
+            order_fulfillment_rate = st.number_input("Order Fulfillment Rate (%)", min_value=0.000, max_value=100.000, value=order_fulfillment_rate, step=0.001, format="%.3f", key="d_ofr")
+            warehouse_utilization = st.number_input("Warehouse Utilization (%)", min_value=0.000, max_value=100.000, value=warehouse_utilization, step=0.001, format="%.3f", key="d_wu")
+            inventory_turnover = st.number_input("Inventory Turnover (times/year)", min_value=0.000, max_value=50.000, value=inventory_turnover, step=0.001, format="%.3f", key="d_it")
+            cost_per_order = st.number_input(f"Cost per Order ({currency_symbol})", min_value=0.000, max_value=500.000, value=cost_per_order, step=0.001, format="%.3f", key="d_cpo")
+        with col2:
+            on_time_delivery = st.number_input("On Time Delivery (%)", min_value=0.000, max_value=100.000, value=on_time_delivery, step=0.001, format="%.3f", key="d_otd")
+            picking_accuracy = st.number_input("Picking Accuracy (%)", min_value=90.000, max_value=100.000, value=picking_accuracy, step=0.001, format="%.3f", key="d_pa")
+            return_rate = st.number_input("Return Rate (%)", min_value=0.000, max_value=30.000, value=return_rate, step=0.001, format="%.3f", key="d_rr")
+
     kpi_data = {
         "order_fulfillment_rate": order_fulfillment_rate,
         "on_time_delivery": on_time_delivery,

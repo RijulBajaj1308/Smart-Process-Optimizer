@@ -521,6 +521,21 @@ def show_supply_chain(industry, currency_symbol="$"):
     lead_time_flexibility = st.sidebar.number_input("Lead Time Flexibility (%)", min_value=0.000, max_value=100.000, value=15.000, step=0.001, format="%.3f")
     sourcing_flexibility = st.sidebar.number_input("Sourcing Flexibility (%)", min_value=0.000, max_value=100.000, value=50.000, step=0.001, format="%.3f")
 
+    with st.expander("Enter Your KPI Numbers (tap to expand)", expanded=False):
+        st.caption(f"Benchmarks: {industry} (India)")
+        col1, col2 = st.columns(2)
+        with col1:
+            supplier_otd = st.number_input("Supplier OTD (%)", min_value=0.000, max_value=100.000, value=supplier_otd, step=0.001, format="%.3f", key="sc_otd")
+            order_fulfillment_rate = st.number_input("Order Fulfillment Rate (%)", min_value=0.000, max_value=100.000, value=order_fulfillment_rate, step=0.001, format="%.3f", key="sc_ofr")
+            supply_chain_cost = st.number_input("Supply Chain Cost (%)", min_value=0.000, max_value=30.000, value=supply_chain_cost, step=0.001, format="%.3f", key="sc_cost")
+            supplier_quality_rate = st.number_input("Supplier Quality Rate (%)", min_value=0.000, max_value=100.000, value=supplier_quality_rate, step=0.001, format="%.3f", key="sc_qual")
+            sourcing_flexibility = st.number_input("Sourcing Flexibility (%)", min_value=0.000, max_value=100.000, value=sourcing_flexibility, step=0.001, format="%.3f", key="sc_sf")
+        with col2:
+            inventory_turnover = st.number_input("Inventory Turnover (times/yr)", min_value=0.000, max_value=30.000, value=inventory_turnover, step=0.001, format="%.3f", key="sc_it")
+            forecast_accuracy = st.number_input("Forecast Accuracy (%)", min_value=0.000, max_value=100.000, value=forecast_accuracy, step=0.001, format="%.3f", key="sc_fa")
+            days_inventory_outstanding = st.number_input("Days Inventory Outstanding", min_value=0.000, max_value=120.000, value=days_inventory_outstanding, step=0.001, format="%.3f", key="sc_dio")
+            lead_time_flexibility = st.number_input("Lead Time Flexibility (%)", min_value=0.000, max_value=100.000, value=lead_time_flexibility, step=0.001, format="%.3f", key="sc_ltf")
+
     kpi_data = {
         "supplier_otd": supplier_otd,
         "inventory_turnover": inventory_turnover,
