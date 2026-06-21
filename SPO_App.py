@@ -57,59 +57,42 @@ st.markdown("""
     background: var(--bg);
 }
 
+/* Floating orbs */
 .hero-wrap::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 48px 48px;
-    opacity: 0.35;
+    top: 15%;
+    left: 10%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(232,0,29,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float1 8s ease-in-out infinite;
+    pointer-events: none;
 }
 
 .hero-wrap::after {
     content: '';
     position: absolute;
-    top: -150px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 700px;
-    height: 500px;
-    background: radial-gradient(ellipse, rgba(232,0,29,0.1) 0%, transparent 70%);
+    bottom: 10%;
+    right: 8%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(100,120,255,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: float2 10s ease-in-out infinite;
     pointer-events: none;
 }
 
-.scan-line {
-    position: absolute;
-    left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--red), transparent);
-    animation: scan 5s ease-in-out infinite;
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 1;
+@keyframes float1 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(30px, -30px); }
 }
 
-@keyframes scan {
-    0% { top: 0%; opacity: 0; }
-    10% { opacity: 0.4; }
-    90% { opacity: 0.4; }
-    100% { top: 100%; opacity: 0; }
+@keyframes float2 {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, 20px); }
 }
-
-.corner {
-    position: absolute;
-    width: 32px; height: 32px;
-    border-color: var(--red);
-    border-style: solid;
-    opacity: 0.3;
-    z-index: 1;
-}
-.corner-tl { top: 24px; left: 24px; border-width: 2px 0 0 2px; }
-.corner-tr { top: 24px; right: 24px; border-width: 2px 2px 0 0; }
-.corner-bl { bottom: 24px; left: 24px; border-width: 0 0 2px 2px; }
-.corner-br { bottom: 24px; right: 24px; border-width: 0 2px 2px 0; }
 
 .hero-content { position: relative; z-index: 2; }
 
@@ -428,17 +411,20 @@ div[data-testid="stButton"] > button:hover {
     padding: 40px 24px;
     background: var(--bg);
     position: relative;
+    overflow: hidden;
 }
 
 .auth-wrap::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-    background-size: 48px 48px;
-    opacity: 0.3;
+    top: 20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(232,0,29,0.05) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
 }
 
 .auth-box {
@@ -794,11 +780,6 @@ def show_dashboard():
 if st.session_state.page == "landing":
     st.markdown("""
     <div class="hero-wrap">
-        <div class="scan-line"></div>
-        <div class="corner corner-tl"></div>
-        <div class="corner corner-tr"></div>
-        <div class="corner corner-bl"></div>
-        <div class="corner corner-br"></div>
         <div class="hero-content">
             <div class="system-tag">
                 <div class="blink"></div>
