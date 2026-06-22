@@ -774,20 +774,59 @@ def show_dashboard():
 
             with tab3:
                 if analyses:
+                    # Progress chart - show if 2+ quick analyses exist
+                    quick_analyses = [a for a in reversed(analyses) if a.get("analysis_type") == "Quick" and a.get("risk_score")]
+                    if len(quick_analyses) >= 2:
+                        import matplotlib
+                        matplotlib.use('Agg')
+                        import matplotlib.pyplot as plt
+                        import io as _io
+                        dates = [a["created_at"][:10] for a in quick_analyses]
+                        scores = [a["risk_score"] for a in quick_analyses]
+                        fig, ax = plt.subplots(figsize=(6, 2.5))
+                        fig.patch.set_facecolor('#1A1D27')
+                        ax.set_facecolor('#1A1D27')
+                        ax.plot(range(len(dates)), scores, color='#E8001D', linewidth=2, marker='o', markersize=6)
+                        ax.fill_between(range(len(dates)), scores, alpha=0.1, color='#E8001D')
+                        ax.set_title('Risk Score Over Time', color='#E8EAF0', fontsize=10, pad=8)
+                        ax.set_xticks(range(len(dates)))
+                        ax.set_xticklabels(dates, rotation=15, ha='right', fontsize=7, color='#4A5060')
+                        ax.tick_params(colors='#4A5060', labelsize=8)
+                        ax.spines['bottom'].set_color('#2D3139')
+                        ax.spines['left'].set_color('#2D3139')
+                        ax.spines['top'].set_visible(False)
+                        ax.spines['right'].set_visible(False)
+                        ax.set_ylim(0, 100)
+                        plt.tight_layout()
+                        buf = _io.BytesIO()
+                        plt.savefig(buf, format='png', dpi=120, bbox_inches='tight', facecolor='#1A1D27')
+                        buf.seek(0)
+                        plt.close()
+                        st.image(buf, use_column_width=True)
+                        st.caption("Risk score trend — higher is better")
+                        st.write("")
+
                     for a in analyses:
                         a_type = a.get("analysis_type", "Unknown")
                         a_date = a.get("created_at", "")[:10]
                         a_risk = a.get("risk_score", "N/A")
                         a_label = a.get("risk_label", "")
-                        color = "#CC0000" if a_type == "Quick" else "#FFD700"
+                        color = "#E8001D" if a_type == "Quick" else "#FFD700"
+                        tool = a.get("results", "{}")
+                        try:
+                            import json
+                            tool_name = json.loads(tool).get("tool", "") if isinstance(tool, str) else ""
+                        except:
+                            tool_name = ""
+                        display_type = f"{a_type} — {tool_name}" if tool_name else a_type
                         st.markdown(f"""
-                        <div style="background:#1a1a1a;border-left:3px solid {color};padding:10px 14px;margin:6px 0;border-radius:0 6px 6px 0;">
-                            <span style="color:{color};font-weight:700;font-size:0.8rem;">{a_type} Analysis</span>
-                            <span style="color:#888;margin-left:10px;font-size:0.78rem;">{a_date} &nbsp;|&nbsp; Risk Score: {a_risk}/100 — {a_label}</span>
+                        <div style="background:#1A1D27;border-left:3px solid {color};padding:10px 14px;margin:6px 0;border-radius:0 6px 6px 0;">
+                            <span style="color:{color};font-weight:700;font-size:0.8rem;">{display_type}</span>
+                            <span style="color:#8B90A0;margin-left:10px;font-size:0.78rem;">{a_date} &nbsp;|&nbsp; Risk Score: {a_risk}/100 — {a_label}</span>
                         </div>
                         """, unsafe_allow_html=True)
                 else:
-                    st.write("No analysis history yet.")
+                    st.write("No analysis history yet. Run a Quick Analysis and save it to see your progress here.")
 
         st.divider()
 
