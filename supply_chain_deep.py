@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+from process_flow_map import show_supply_chain_flow_map
 try:
     from auth import save_analysis
 except ImportError:
@@ -136,7 +137,8 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
             "Supplier Performance Scorecard",
             "Inventory ABC Analysis",
             "Lead Time Analysis",
-            "Supply Chain Risk Assessment"
+            "Supply Chain Risk Assessment",
+            "Supply Chain Flow Map"
         ]
     )
 
@@ -639,6 +641,9 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
     # ════════════════════════════════════════
     # TOOL 4: SUPPLY CHAIN RISK ASSESSMENT
     # ════════════════════════════════════════
+    elif tool == "Supply Chain Flow Map":
+        show_supply_chain_flow_map(industry, currency_symbol)
+
     elif tool == "Supply Chain Risk Assessment":
         st.header("Supply Chain Risk Assessment")
         st.write("Assess the risk level of each critical item in your supply chain based on supply risk and business impact.")

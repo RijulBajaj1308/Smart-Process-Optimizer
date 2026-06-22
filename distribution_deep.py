@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+from process_flow_map import show_distribution_flow_map
 try:
     from auth import save_analysis
 except ImportError:
@@ -142,7 +143,8 @@ def show_distribution_deep(industry, currency_symbol="$"):
             "Delivery Route Efficiency",
             "Order Picking Time Analysis",
             "Warehouse Slotting Analysis",
-            "Returns Root Cause Analysis"
+            "Returns Root Cause Analysis",
+            "Order Flow Map"
         ]
     )
 
@@ -644,6 +646,9 @@ def show_distribution_deep(industry, currency_symbol="$"):
     # ════════════════════════════════════════
     # TOOL 4: RETURNS ROOT CAUSE ANALYSIS
     # ════════════════════════════════════════
+    elif tool == "Order Flow Map":
+        show_distribution_flow_map(industry, currency_symbol)
+
     elif tool == "Returns Root Cause Analysis":
         st.header("Returns Root Cause Analysis")
         st.write("Understand exactly why customers are returning products so you can fix the root cause instead of just processing returns.")
@@ -791,3 +796,8 @@ def show_distribution_deep(industry, currency_symbol="$"):
                         st.error(f"Save failed: {e}")
                 else:
                     st.warning("Login required to save.")
+
+
+def _add_flow_map_to_dist(tool, industry, currency_symbol):
+    if tool == "Order Flow Map":
+        show_distribution_flow_map(industry, currency_symbol)

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+from process_flow_map import show_manufacturing_flow_map
 try:
     from auth import save_analysis, update_company_name
 except ImportError:
@@ -146,7 +147,8 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
             "Bottleneck Identifier",
             "OEE Calculator (Overall Equipment Effectiveness)",
             "Defect Pareto Analysis",
-            "Manpower Planning Tool"
+            "Manpower Planning Tool",
+            "Process Flow Map"
         ]
     )
 
@@ -883,3 +885,6 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
                     st.warning("Login required to save.")
             if not understaffed and not overstaffed:
                 st.success("Your manpower allocation is perfectly balanced for your current takt time!")
+
+    elif tool == "Process Flow Map":
+        show_manufacturing_flow_map(industry, currency_symbol)
