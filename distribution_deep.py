@@ -306,20 +306,26 @@ def show_distribution_deep(industry, currency_symbol="$"):
                     mime="application/pdf",
                     use_container_width=True
                 )
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_route"):
                 if st.session_state.get("current_company"):
                     try:
                         worst_r = min(route_data, key=lambda x: x["otd"]) if route_data else {}
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_orders": total_orders, "total_distance": total_distance},
-                            results={"tool": "Delivery Route Efficiency", "overall_otd": overall_otd, "worst_route": worst_r.get("name",""), "worst_route_otd": worst_r.get("otd", 0)},
+                            kpi_data={"num_routes": num_routes, "vehicle_capacity": vehicle_capacity, "total_orders": total_orders, "total_distance": total_distance, "overall_otd": overall_otd, "cost_per_order": cost_per_order},
+                            results={"tool": "Delivery Route Efficiency", "overall_otd": overall_otd, "worst_route": worst_r.get("name",""), "worst_route_otd": worst_r.get("otd", 0), "route_details": route_data},
                             risk_score=int(max(0, min(100, overall_otd))),
                             risk_label="LOW RISK" if overall_otd >= 92 else "MEDIUM RISK" if overall_otd >= 80 else "HIGH RISK",
                             tool_name="Delivery Route Efficiency"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 2: ORDER PICKING TIME ANALYSIS
@@ -437,34 +443,47 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_returns"):
                 if st.session_state.get("current_company"):
                     try:
                         top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
                         top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
-                        save_analysis(
+                        reasons_dict = {r: v for r, v in reasons_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
-                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            kpi_data={"total_returns": total_returns, "total_orders_sent": total_orders_sent, "return_rate": return_rate, "cost_per_return": cost_per_return, **reasons_dict},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate, "monthly_cost": total_cost},
                             risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
                             risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
                             tool_name="Returns Root Cause Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_picking"):
                 if st.session_state.get("current_company"):
                     try:
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_pickers": num_pickers, "travel_time_pct": travel_time_pct, "search_time_pct": search_time_pct},
-                            results={"tool": "Order Picking Time Analysis", "picking_efficiency": picking_efficiency, "actual_orders_per_picker_hour": actual_orders_per_picker_hour, "search_time_pct": search_time_pct},
+                            kpi_data={"shift_hours": shift_hours, "num_pickers": num_pickers, "target_orders_per_hour": target_orders_per_hour, "travel_time_pct": travel_time_pct, "search_time_pct": search_time_pct, "actual_pick_time_pct": actual_pick_time_pct},
+                            results={"tool": "Order Picking Time Analysis", "picking_efficiency": picking_efficiency, "actual_orders_per_picker_hour": actual_orders_per_picker_hour, "search_time_pct": search_time_pct, "wasted_pct": wasted_pct},
                             risk_score=int(max(0, min(100, picking_efficiency))),
                             risk_label="LOW RISK" if picking_efficiency >= 80 else "MEDIUM RISK" if picking_efficiency >= 60 else "HIGH RISK",
                             tool_name="Order Picking Time Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 3: WAREHOUSE SLOTTING ANALYSIS
@@ -580,34 +599,47 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_returns"):
                 if st.session_state.get("current_company"):
                     try:
                         top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
                         top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
-                        save_analysis(
+                        reasons_dict = {r: v for r, v in reasons_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
-                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            kpi_data={"total_returns": total_returns, "total_orders_sent": total_orders_sent, "return_rate": return_rate, "cost_per_return": cost_per_return, **reasons_dict},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate, "monthly_cost": total_cost},
                             risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
                             risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
                             tool_name="Returns Root Cause Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_slotting"):
                 if st.session_state.get("current_company"):
                     try:
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_skus": total_skus, "fast_skus": fast_skus, "slow_in_prime": slow_in_prime},
-                            results={"tool": "Warehouse Slotting Analysis", "slotting_score": slotting_score, "fast_coverage": fast_coverage, "c_items_in_prime": slow_in_prime},
+                            kpi_data={"total_skus": total_skus, "fast_skus": fast_skus, "medium_skus": medium_skus, "slow_skus": slow_skus, "fast_in_prime": fast_in_prime, "medium_in_prime": medium_in_prime, "slow_in_prime": slow_in_prime},
+                            results={"tool": "Warehouse Slotting Analysis", "slotting_score": slotting_score, "fast_coverage": fast_coverage, "c_items_in_prime": slow_in_prime, "misplaced_slow": misplaced_slow},
                             risk_score=int(max(0, min(100, slotting_score))),
                             risk_label="LOW RISK" if slotting_score >= 80 else "MEDIUM RISK" if slotting_score >= 60 else "HIGH RISK",
                             tool_name="Warehouse Slotting Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 4: RETURNS ROOT CAUSE ANALYSIS
@@ -737,18 +769,25 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_returns"):
                 if st.session_state.get("current_company"):
                     try:
                         top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
                         top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
-                        save_analysis(
+                        reasons_dict = {r: v for r, v in reasons_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
-                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            kpi_data={"total_returns": total_returns, "total_orders_sent": total_orders_sent, "return_rate": return_rate, "cost_per_return": cost_per_return, **reasons_dict},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate, "monthly_cost": total_cost},
                             risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
                             risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
                             tool_name="Returns Root Cause Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")

@@ -312,19 +312,25 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
                 st.download_button("Download PDF Report", pdf,
                     file_name=f"SPO_Bottleneck_{report_company.replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_bn"):
                 if st.session_state.get("current_company"):
                     try:
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"takt_time": takt_time, "num_stations": num_stations},
-                            results={"tool": "Bottleneck Identifier", "bottleneck_station": bottleneck["name"], "bottleneck_ct": bottleneck["cycle_time"], "current_output": current_output, "ideal_output": ideal_output, "efficiency": efficiency},
+                            kpi_data={"takt_time": takt_time, "num_stations": num_stations, "shifts_per_day": shifts_per_day, "hours_per_shift": hours_per_shift, "bottleneck_station": bottleneck["name"], "bottleneck_ct": bottleneck["cycle_time"]},
+                            results={"tool": "Bottleneck Identifier", "bottleneck_station": bottleneck["name"], "bottleneck_ct": bottleneck["cycle_time"], "current_output": current_output, "ideal_output": ideal_output, "efficiency": efficiency, "output_gain": output_gain},
                             risk_score=int(max(0, min(100, efficiency))),
                             risk_label="LOW RISK" if efficiency >= 85 else "MEDIUM RISK" if efficiency >= 70 else "HIGH RISK",
                             tool_name="Bottleneck Identifier"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
             st.info(f"Your bottleneck is {bottleneck['name']} at {bottleneck['cycle_time']:.1f} mins. This single station is limiting your entire line to {current_output:.0f} units per day. There are {idle_time:.1f} mins of combined idle time across your other stations that could be redistributed to {bottleneck['name']} to reduce its cycle time. Conduct a time study at {bottleneck['name']} to identify which tasks can be moved to adjacent stations.")
 
     # ════════════════════════════════════════
@@ -491,19 +497,25 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
                 st.download_button("Download PDF Report", pdf,
                     file_name=f"SPO_OEE_{report_company.replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_oee"):
                 if st.session_state.get("current_company"):
                     try:
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"availability": availability, "performance": performance, "quality": quality},
-                            results={"tool": "OEE Calculator", "oee": oee, "availability": availability, "performance": performance, "quality": quality},
+                            kpi_data={"planned_time": planned_time, "downtime": downtime, "ideal_cycle_time": ideal_cycle_time, "total_units": total_units, "good_units": good_units, "availability": availability, "performance": performance, "quality": quality, "oee": oee},
+                            results={"tool": "OEE Calculator", "oee": oee, "availability": availability, "performance": performance, "quality": quality, "biggest_loss": biggest_loss[0], "biggest_loss_mins": biggest_loss[1]},
                             risk_score=int(max(0, min(100, oee))),
                             risk_label="LOW RISK" if oee >= 85 else "MEDIUM RISK" if oee >= 60 else "HIGH RISK",
                             tool_name="OEE Calculator"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
                 st.info(f"Your {downtime:.0f} mins of daily downtime is costing you approximately {lost_units:.0f} units per day in lost production.")
 
     # ════════════════════════════════════════
@@ -638,21 +650,28 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
                 st.download_button("Download PDF Report", pdf,
                     file_name=f"SPO_Pareto_{report_company.replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_pareto"):
                 if st.session_state.get("current_company"):
                     try:
                         top_defect = defects_sorted[0]["name"] if defects_sorted else "Unknown"
                         top_pct = (defects_sorted[0]["qty"] / total * 100) if defects_sorted and total > 0 else 0
-                        save_analysis(
+                        defect_data = {d["name"]: d["qty"] for d in defects_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_defects": total, "num_types": len(defects_sorted)},
-                            results={"tool": "Defect Pareto Analysis", "top_defect": top_defect, "top_defect_pct": top_pct, "vital_few_count": len(vital_few)},
+                            kpi_data={"total_defects": total, "num_defect_types": len(defects_sorted), **defect_data},
+                            results={"tool": "Defect Pareto Analysis", "top_defect": top_defect, "top_defect_pct": top_pct, "vital_few_count": len(vital_few), "vital_few": [d["name"] for d in vital_few]},
                             risk_score=int(max(0, 100 - top_pct)),
                             risk_label="HIGH RISK" if top_pct > 50 else "MEDIUM RISK" if top_pct > 30 else "LOW RISK",
                             tool_name="Defect Pareto Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
             st.subheader("Total Defect Summary")
             col1, col2, col3 = st.columns(3)
             with col1:
@@ -840,20 +859,27 @@ def show_manufacturing_deep(industry, currency_symbol="$"):
                 st.download_button("Download PDF Report", pdf,
                     file_name=f"SPO_Manpower_{report_company.replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_mp"):
                 if st.session_state.get("current_company"):
                     try:
                         understaffed_names = [r["name"] for r in results if r["status"] == "Understaffed"]
                         overstaffed_names = [r["name"] for r in results if r["status"] == "Overstaffed"]
-                        save_analysis(
+                        station_data = {r["name"]: {"current": r["current_workers"], "ideal": r["ideal_workers_rounded"]} for r in results}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"takt_time": takt_time, "total_workers": total_current, "ideal_workers": total_ideal},
-                            results={"tool": "Manpower Planning", "understaffed_stations": understaffed_names, "overstaffed_stations": overstaffed_names, "total_current": total_current, "total_ideal": total_ideal},
+                            kpi_data={"takt_time": takt_time, "efficiency_factor": efficiency_factor, "daily_demand": daily_demand, "total_current_workers": total_current, "total_ideal_workers": total_ideal, "worker_difference": total_diff},
+                            results={"tool": "Manpower Planning", "understaffed_stations": understaffed_names, "overstaffed_stations": overstaffed_names, "total_current": total_current, "total_ideal": total_ideal, "station_data": station_data},
                             risk_score=int(max(0, 100 - abs(total_diff) * 10)),
                             risk_label="HIGH RISK" if abs(total_diff) > 3 else "MEDIUM RISK" if abs(total_diff) > 1 else "LOW RISK",
                             tool_name="Manpower Planning"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
             if not understaffed and not overstaffed:
                 st.success("Your manpower allocation is perfectly balanced for your current takt time!")

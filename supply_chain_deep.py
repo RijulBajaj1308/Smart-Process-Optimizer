@@ -256,35 +256,49 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_risk"):
                 if st.session_state.get("current_company"):
                     try:
                         avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
-                        save_analysis(
+                        item_data = {i["name"]: {"supply_risk": i["supply_risk"], "impact": i["impact"], "risk_level": i["risk_level"]} for i in items_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_items": num_items},
-                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            kpi_data={"num_items": num_items, "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk, "item_risks": item_data},
                             risk_score=int(max(0, 100 - avg_risk * 10)),
                             risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
                             tool_name="Supply Chain Risk Assessment"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_suppliers"):
                 if st.session_state.get("current_company"):
                     try:
                         worst_s = scored_sorted[0] if scored_sorted else {}
                         avg_score = sum(s["score"] for s in scored) / len(scored) if scored else 0
-                        save_analysis(
+                        supplier_scores = {s["name"]: {"otd": s["otd"], "quality": s["quality"], "score": s["score"]} for s in scored}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_suppliers": num_suppliers},
-                            results={"tool": "Supplier Performance Scorecard", "worst_supplier": worst_s.get("name",""), "worst_supplier_score": worst_s.get("score",0), "avg_score": avg_score, "single_source_count": len([s for s in scored if s.get("single_source")])},
+                            kpi_data={"num_suppliers": num_suppliers, "avg_supplier_score": avg_score, "single_source_count": len([s for s in scored if s.get("single_source")]), "high_risk_count": len([s for s in scored if s["risk"] == "High Risk"])},
+                            results={"tool": "Supplier Performance Scorecard", "worst_supplier": worst_s.get("name",""), "worst_supplier_score": worst_s.get("score",0), "avg_score": avg_score, "supplier_scores": supplier_scores},
                             risk_score=int(max(0, min(100, avg_score))),
                             risk_label="LOW RISK" if avg_score >= 80 else "MEDIUM RISK" if avg_score >= 60 else "HIGH RISK",
                             tool_name="Supplier Performance Scorecard"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 2: INVENTORY ABC ANALYSIS
@@ -422,34 +436,47 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_risk"):
                 if st.session_state.get("current_company"):
                     try:
                         avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
-                        save_analysis(
+                        item_data = {i["name"]: {"supply_risk": i["supply_risk"], "impact": i["impact"], "risk_level": i["risk_level"]} for i in items_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_items": num_items},
-                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            kpi_data={"num_items": num_items, "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk, "item_risks": item_data},
                             risk_score=int(max(0, 100 - avg_risk * 10)),
                             risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
                             tool_name="Supply Chain Risk Assessment"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_abc"):
                 if st.session_state.get("current_company"):
                     try:
                         c_in_prime = len([c for c in abc_cats if c["abc"] == "C"])
-                        save_analysis(
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_categories": len(categories), "total_value": total_value},
+                            kpi_data={"total_categories": len(categories), "total_annual_value": total_value, "holding_cost_pct": holding_cost_pct, "total_holding_cost": total_holding, "a_items": len([c for c in abc_cats if c["abc"]=="A"]), "b_items": len([c for c in abc_cats if c["abc"]=="B"]), "c_items": len([c for c in abc_cats if c["abc"]=="C"])},
                             results={"tool": "Inventory ABC Analysis", "a_items": len([c for c in abc_cats if c["abc"]=="A"]), "b_items": len([c for c in abc_cats if c["abc"]=="B"]), "c_items": len([c for c in abc_cats if c["abc"]=="C"]), "c_items_in_prime": c_in_prime, "total_holding_cost": total_holding},
                             risk_score=int(max(0, 100 - c_in_prime * 5)),
                             risk_label="LOW RISK" if c_in_prime <= 2 else "MEDIUM RISK" if c_in_prime <= 5 else "HIGH RISK",
                             tool_name="Inventory ABC Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 3: LEAD TIME ANALYSIS
@@ -567,33 +594,47 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_risk"):
                 if st.session_state.get("current_company"):
                     try:
                         avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
-                        save_analysis(
+                        item_data = {i["name"]: {"supply_risk": i["supply_risk"], "impact": i["impact"], "risk_level": i["risk_level"]} for i in items_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_items": num_items},
-                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            kpi_data={"num_items": num_items, "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk, "item_risks": item_data},
                             risk_score=int(max(0, 100 - avg_risk * 10)),
                             risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
                             tool_name="Supply Chain Risk Assessment"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_lt"):
                 if st.session_state.get("current_company"):
                     try:
-                        save_analysis(
+                        component_data = {c["name"]: {"days": c["days"], "value_add": c["value_add"]} for c in components}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"total_lt": total_lt, "customer_required_lt": customer_required_lt},
-                            results={"tool": "Lead Time Analysis", "total_lt_days": total_lt, "value_add_days": value_add_lt, "non_value_add_days": non_value_add_lt, "lt_efficiency": lt_efficiency, "lt_gap": lt_gap},
+                            kpi_data={"total_lt_days": total_lt, "customer_required_lt": customer_required_lt, "value_add_days": value_add_lt, "non_value_add_days": non_value_add_lt, "lt_efficiency_pct": lt_efficiency, "lt_gap_days": lt_gap},
+                            results={"tool": "Lead Time Analysis", "total_lt_days": total_lt, "value_add_days": value_add_lt, "non_value_add_days": non_value_add_lt, "lt_efficiency": lt_efficiency, "lt_gap": lt_gap, "components": component_data},
                             risk_score=int(max(0, min(100, lt_efficiency))),
                             risk_label="LOW RISK" if lt_efficiency >= 70 else "MEDIUM RISK" if lt_efficiency >= 40 else "HIGH RISK",
                             tool_name="Lead Time Analysis"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
 
     # ════════════════════════════════════════
     # TOOL 4: SUPPLY CHAIN RISK ASSESSMENT
@@ -717,17 +758,24 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+
+            st.write("")
+            if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_risk"):
                 if st.session_state.get("current_company"):
                     try:
                         avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
-                        save_analysis(
+                        item_data = {i["name"]: {"supply_risk": i["supply_risk"], "impact": i["impact"], "risk_level": i["risk_level"]} for i in items_sorted}
+                        result = save_analysis(
                             company_id=st.session_state.current_company["id"],
                             analysis_type="Deep",
-                            kpi_data={"num_items": num_items},
-                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            kpi_data={"num_items": num_items, "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk, "item_risks": item_data},
                             risk_score=int(max(0, 100 - avg_risk * 10)),
                             risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
                             tool_name="Supply Chain Risk Assessment"
                         )
-                    except Exception:
-                        pass
+                        st.success("Saved to dashboard!" if result else "Save failed.")
+                    except Exception as e:
+                        st.error(f"Save failed: {e}")
+                else:
+                    st.warning("Login required to save.")
