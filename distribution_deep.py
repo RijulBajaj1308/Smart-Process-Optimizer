@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+try:
+    from auth import save_analysis
+except ImportError:
+    def save_analysis(*args, **kwargs): return None
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -302,6 +306,20 @@ def show_distribution_deep(industry, currency_symbol="$"):
                     mime="application/pdf",
                     use_container_width=True
                 )
+                if st.session_state.get("current_company"):
+                    try:
+                        worst_r = min(route_data, key=lambda x: x["otd"]) if route_data else {}
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_orders": total_orders, "total_distance": total_distance},
+                            results={"tool": "Delivery Route Efficiency", "overall_otd": overall_otd, "worst_route": worst_r.get("name",""), "worst_route_otd": worst_r.get("otd", 0)},
+                            risk_score=int(max(0, min(100, overall_otd))),
+                            risk_label="LOW RISK" if overall_otd >= 92 else "MEDIUM RISK" if overall_otd >= 80 else "HIGH RISK",
+                            tool_name="Delivery Route Efficiency"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 2: ORDER PICKING TIME ANALYSIS
@@ -419,6 +437,34 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
+                        top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
+                            risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
+                            tool_name="Returns Root Cause Analysis"
+                        )
+                    except Exception:
+                        pass
+                if st.session_state.get("current_company"):
+                    try:
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_pickers": num_pickers, "travel_time_pct": travel_time_pct, "search_time_pct": search_time_pct},
+                            results={"tool": "Order Picking Time Analysis", "picking_efficiency": picking_efficiency, "actual_orders_per_picker_hour": actual_orders_per_picker_hour, "search_time_pct": search_time_pct},
+                            risk_score=int(max(0, min(100, picking_efficiency))),
+                            risk_label="LOW RISK" if picking_efficiency >= 80 else "MEDIUM RISK" if picking_efficiency >= 60 else "HIGH RISK",
+                            tool_name="Order Picking Time Analysis"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 3: WAREHOUSE SLOTTING ANALYSIS
@@ -534,6 +580,34 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
+                        top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
+                            risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
+                            tool_name="Returns Root Cause Analysis"
+                        )
+                    except Exception:
+                        pass
+                if st.session_state.get("current_company"):
+                    try:
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_skus": total_skus, "fast_skus": fast_skus, "slow_in_prime": slow_in_prime},
+                            results={"tool": "Warehouse Slotting Analysis", "slotting_score": slotting_score, "fast_coverage": fast_coverage, "c_items_in_prime": slow_in_prime},
+                            risk_score=int(max(0, min(100, slotting_score))),
+                            risk_label="LOW RISK" if slotting_score >= 80 else "MEDIUM RISK" if slotting_score >= 60 else "HIGH RISK",
+                            tool_name="Warehouse Slotting Analysis"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 4: RETURNS ROOT CAUSE ANALYSIS
@@ -663,3 +737,18 @@ def show_distribution_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        top_r = reasons_sorted[0] if reasons_sorted else ("Unknown", 0)
+                        top_pct = (top_r[1] / total_returns * 100) if total_returns > 0 else 0
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_returns": total_returns, "return_rate": return_rate},
+                            results={"tool": "Returns Root Cause Analysis", "top_return_reason": top_r[0], "top_reason_pct": top_pct, "return_rate": return_rate},
+                            risk_score=int(max(0, 100 - min(return_rate * 10, 100))),
+                            risk_label="LOW RISK" if return_rate < 2 else "MEDIUM RISK" if return_rate < 5 else "HIGH RISK",
+                            tool_name="Returns Root Cause Analysis"
+                        )
+                    except Exception:
+                        pass

@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+try:
+    from auth import save_analysis
+except ImportError:
+    def save_analysis(*args, **kwargs): return None
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -252,6 +256,35 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_items": num_items},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            risk_score=int(max(0, 100 - avg_risk * 10)),
+                            risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
+                            tool_name="Supply Chain Risk Assessment"
+                        )
+                    except Exception:
+                        pass
+                if st.session_state.get("current_company"):
+                    try:
+                        worst_s = scored_sorted[0] if scored_sorted else {}
+                        avg_score = sum(s["score"] for s in scored) / len(scored) if scored else 0
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_suppliers": num_suppliers},
+                            results={"tool": "Supplier Performance Scorecard", "worst_supplier": worst_s.get("name",""), "worst_supplier_score": worst_s.get("score",0), "avg_score": avg_score, "single_source_count": len([s for s in scored if s.get("single_source")])},
+                            risk_score=int(max(0, min(100, avg_score))),
+                            risk_label="LOW RISK" if avg_score >= 80 else "MEDIUM RISK" if avg_score >= 60 else "HIGH RISK",
+                            tool_name="Supplier Performance Scorecard"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 2: INVENTORY ABC ANALYSIS
@@ -389,6 +422,34 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_items": num_items},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            risk_score=int(max(0, 100 - avg_risk * 10)),
+                            risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
+                            tool_name="Supply Chain Risk Assessment"
+                        )
+                    except Exception:
+                        pass
+                if st.session_state.get("current_company"):
+                    try:
+                        c_in_prime = len([c for c in abc_cats if c["abc"] == "C"])
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_categories": len(categories), "total_value": total_value},
+                            results={"tool": "Inventory ABC Analysis", "a_items": len([c for c in abc_cats if c["abc"]=="A"]), "b_items": len([c for c in abc_cats if c["abc"]=="B"]), "c_items": len([c for c in abc_cats if c["abc"]=="C"]), "c_items_in_prime": c_in_prime, "total_holding_cost": total_holding},
+                            risk_score=int(max(0, 100 - c_in_prime * 5)),
+                            risk_label="LOW RISK" if c_in_prime <= 2 else "MEDIUM RISK" if c_in_prime <= 5 else "HIGH RISK",
+                            tool_name="Inventory ABC Analysis"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 3: LEAD TIME ANALYSIS
@@ -506,6 +567,33 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_items": num_items},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            risk_score=int(max(0, 100 - avg_risk * 10)),
+                            risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
+                            tool_name="Supply Chain Risk Assessment"
+                        )
+                    except Exception:
+                        pass
+                if st.session_state.get("current_company"):
+                    try:
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"total_lt": total_lt, "customer_required_lt": customer_required_lt},
+                            results={"tool": "Lead Time Analysis", "total_lt_days": total_lt, "value_add_days": value_add_lt, "non_value_add_days": non_value_add_lt, "lt_efficiency": lt_efficiency, "lt_gap": lt_gap},
+                            risk_score=int(max(0, min(100, lt_efficiency))),
+                            risk_label="LOW RISK" if lt_efficiency >= 70 else "MEDIUM RISK" if lt_efficiency >= 40 else "HIGH RISK",
+                            tool_name="Lead Time Analysis"
+                        )
+                    except Exception:
+                        pass
 
     # ════════════════════════════════════════
     # TOOL 4: SUPPLY CHAIN RISK ASSESSMENT
@@ -629,3 +717,17 @@ def show_supply_chain_deep(industry, currency_symbol="$"):
                 st.download_button(label="Download PDF Report", data=pdf,
                     file_name=f"SPO_Deep_{(company_name or 'Report').replace(' ','_')}.pdf",
                     mime="application/pdf", use_container_width=True)
+                if st.session_state.get("current_company"):
+                    try:
+                        avg_risk = sum(i["risk_score"] for i in items_sorted) / len(items_sorted) if items_sorted else 5
+                        save_analysis(
+                            company_id=st.session_state.current_company["id"],
+                            analysis_type="Deep",
+                            kpi_data={"num_items": num_items},
+                            results={"tool": "Supply Chain Risk Assessment", "critical_count": len(critical_items), "single_source_count": len(single_source_items), "avg_risk_score": avg_risk},
+                            risk_score=int(max(0, 100 - avg_risk * 10)),
+                            risk_label="LOW RISK" if avg_risk < 4 else "MEDIUM RISK" if avg_risk < 7 else "HIGH RISK",
+                            tool_name="Supply Chain Risk Assessment"
+                        )
+                    except Exception:
+                        pass
