@@ -505,6 +505,39 @@ hr { border-color: var(--border) !important; }
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--red); border-radius: 2px; }
+    /* ── SIDEBAR MOBILE FIX ── */
+    /* Make sidebar toggle button bigger and more visible on mobile */
+    [data-testid="collapsedControl"] {
+        background: var(--surface) !important;
+        border: 1px solid var(--border2) !important;
+        border-radius: 8px !important;
+        width: 44px !important;
+        height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: var(--shadow) !important;
+        top: 12px !important;
+        left: 12px !important;
+    }
+
+    [data-testid="collapsedControl"] svg {
+        width: 20px !important;
+        height: 20px !important;
+        color: var(--text) !important;
+    }
+
+    /* Keep sidebar always accessible on mobile */
+    @media (max-width: 768px) {
+        [data-testid="collapsedControl"] {
+            background: var(--red) !important;
+            border-color: var(--red) !important;
+        }
+        [data-testid="collapsedControl"] svg {
+            color: white !important;
+        }
+    }
+
 
 /* ── MOBILE ── */
 @media (max-width: 768px) {

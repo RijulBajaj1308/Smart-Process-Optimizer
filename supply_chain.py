@@ -834,19 +834,7 @@ def show_supply_chain(industry, currency_symbol="$"):
     if st.button("Generate Report", use_container_width=True):
         report_company = company_name if company_name else "Unnamed Company"
 
-        # Save analysis to Supabase
-        if st.session_state.get("current_company"):
-            try:
-                save_analysis(
-                    company_id=st.session_state.current_company["id"],
-                    analysis_type="Quick",
-                    kpi_data=kpi_data,
-                    results={k: {"value": v["value"], "benchmark": v["benchmark"], "gap": v["gap"], "status": v["status"]} for k, v in analysis.items()},
-                    risk_score=risk_score,
-                    risk_label=risk_label
-                )
-            except Exception:
-                pass
+
 
         pdf_buffer = generate_pdf_report(
             company_name=report_company,
@@ -873,3 +861,36 @@ def show_supply_chain(industry, currency_symbol="$"):
             mime="application/pdf",
             use_container_width=True
         )
+
+    st.write("")
+    st.subheader("Save to Dashboard")
+    st.write("Save this analysis to your company dashboard to track progress over time.")
+    if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_dashboard_sc"):
+        if st.session_state.get("current_company"):
+            try:
+                result = save_analysis(
+                    company_id=st.session_state.current_company["id"],
+                    analysis_type="Quick",
+                    kpi_data={
+                        "supplier_otd": supplier_otd,
+                        "inventory_turnover": inventory_turnover,
+                        "order_fulfillment_rate": order_fulfillment_rate,
+                        "forecast_accuracy": forecast_accuracy,
+                        "supply_chain_cost": supply_chain_cost,
+                        "days_inventory_outstanding": days_inventory_outstanding,
+                        "supplier_quality_rate": supplier_quality_rate,
+                        "lead_time_flexibility": lead_time_flexibility,
+                        "sourcing_flexibility": sourcing_flexibility,
+                    },
+                    results={k: {"value": v["value"], "benchmark": v["benchmark"], "gap": v["gap"], "status": v["status"]} for k, v in analysis.items()},
+                    risk_score=risk_score,
+                    risk_label=risk_label
+                )
+                if result:
+                    st.success("Analysis saved to your dashboard!")
+                else:
+                    st.error("Could not save. Please try again.")
+            except Exception as e:
+                st.error(f"Save failed: {e}")
+        else:
+            st.warning("You need to be logged in to save. Guest mode does not save data.")

@@ -934,19 +934,7 @@ def show_manufacturing(industry, currency_symbol="$"):
     if st.button("Generate Report", use_container_width=True):
         report_company = company_name if company_name else "Unnamed Company"
 
-        # Save analysis to Supabase
-        if st.session_state.get("current_company"):
-            try:
-                save_analysis(
-                    company_id=st.session_state.current_company["id"],
-                    analysis_type="Quick",
-                    kpi_data=kpi_data,
-                    results={k: {"value": v["value"], "benchmark": v["benchmark"], "gap": v["gap"], "status": v["status"]} for k, v in analysis.items()},
-                    risk_score=risk_score,
-                    risk_label=risk_label
-                )
-            except Exception:
-                pass
+
 
         pfmea_data = {
             "process_step": process_step,
@@ -985,3 +973,34 @@ def show_manufacturing(industry, currency_symbol="$"):
             mime="application/pdf",
             use_container_width=True
         )
+
+    st.write("")
+    st.subheader("Save to Dashboard")
+    st.write("Save this analysis to your company dashboard to track progress over time.")
+    if st.button("Save Analysis to Dashboard", use_container_width=True, key="save_dashboard_mfg"):
+        if st.session_state.get("current_company"):
+            try:
+                result = save_analysis(
+                    company_id=st.session_state.current_company["id"],
+                    analysis_type="Quick",
+                    kpi_data={
+                        "efficiency_rate": efficiency_rate,
+                        "cycle_time": cycle_time,
+                        "waste_percentage": waste_percentage,
+                        "roi": roi,
+                        "manpower_utilization": manpower_utilization,
+                        "rejection_rate": rejection_rate,
+                        "lead_time": lead_time
+                    },
+                    results={k: {"value": v["value"], "benchmark": v["benchmark"], "gap": v["gap"], "status": v["status"]} for k, v in analysis.items()},
+                    risk_score=risk_score,
+                    risk_label=risk_label
+                )
+                if result:
+                    st.success("Analysis saved to your dashboard!")
+                else:
+                    st.error("Could not save. Please try again.")
+            except Exception as e:
+                st.error(f"Save failed: {e}")
+        else:
+            st.warning("You need to be logged in to save. Continue as guest mode does not save data.")
