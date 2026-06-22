@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
 import streamlit as st
+try:
+    from auth import save_analysis, update_company_name
+except ImportError:
+    def save_analysis(*args, **kwargs): return None
+    def update_company_name(*args, **kwargs): return None
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -551,6 +556,14 @@ def show_supply_chain(industry, currency_symbol="$"):
     analysis = analyze_kpis(kpi_data, benchmarks)
 
     company_name = st.text_input("Company / Organization Name", placeholder="e.g. Tata Motors")
+
+    # Auto save company name if logged in
+    if company_name and st.session_state.get("current_company"):
+        company = st.session_state.get("current_company")
+        if company and company.get("name") == "New Company":
+            update_company_name(company["id"], company_name)
+            st.session_state.current_company["name"] = company_name
+
     st.divider()
 
     st.header("Performance Analysis")
@@ -820,6 +833,20 @@ def show_supply_chain(industry, currency_symbol="$"):
 
     if st.button("Generate Report", use_container_width=True):
         report_company = company_name if company_name else "Unnamed Company"
+
+        # Save analysis to Supabase
+        if st.session_state.get("current_company"):
+            try:
+                save_analysis(
+                    company_id=st.session_state.current_company["id"],
+                    analysis_type="Quick",
+                    kpi_data=kpi_data,
+                    results={k: {"value": v["value"], "benchmark": v["benchmark"], "gap": v["gap"], "status": v["status"]} for k, v in analysis.items()},
+                    risk_score=risk_score,
+                    risk_label=risk_label
+                )
+            except Exception:
+                pass
 
         pdf_buffer = generate_pdf_report(
             company_name=report_company,

@@ -86,13 +86,13 @@ def get_companies():
     except Exception as e:
         return []
 
-def save_analysis(company_id, analysis_type, kpi_data, results, risk_score, risk_label):
+def save_analysis(company_id, analysis_type, kpi_data, results, risk_score, risk_label, tool_name=None):
     try:
         supabase = get_supabase_client()
         user = get_current_user()
         if not user:
             return None
-        response = supabase.table("analyses").insert({
+        data = {
             "company_id": company_id,
             "user_id": user.id,
             "analysis_type": analysis_type,
@@ -100,14 +100,24 @@ def save_analysis(company_id, analysis_type, kpi_data, results, risk_score, risk
             "results": json.dumps(results),
             "risk_score": risk_score,
             "risk_label": risk_label,
-        }).execute()
-        # Update company updated_at
+        }
+        if tool_name:
+            data["results"] = json.dumps({**results, "tool": tool_name})
+        response = supabase.table("analyses").insert(data).execute()
         supabase.table("companies").update({
             "updated_at": datetime.now().isoformat()
         }).eq("id", company_id).execute()
         return response.data[0] if response.data else None
     except Exception as e:
         return None
+
+def update_company_name(company_id, name):
+    try:
+        supabase = get_supabase_client()
+        supabase.table("companies").update({"name": name}).eq("id", company_id).execute()
+        return True
+    except Exception as e:
+        return False
 
 def get_analyses(company_id):
     try:

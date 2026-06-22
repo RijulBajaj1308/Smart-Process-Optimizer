@@ -6,7 +6,7 @@ from supply_chain import show_supply_chain
 from manufacturing_deep import show_manufacturing_deep
 from distribution_deep import show_distribution_deep
 from supply_chain_deep import show_supply_chain_deep
-from auth import sign_in, sign_up, sign_out, get_current_user, get_companies, create_company, get_analyses, delete_company
+from auth import sign_in, sign_up, sign_out, get_current_user, get_companies, create_company, get_analyses, delete_company, update_company_name
 from cross_analysis import show_cross_analysis
 
 st.set_page_config(
@@ -1101,6 +1101,40 @@ elif st.session_state.page == "analysis":
             st.session_state.page = "category"
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
+    st.sidebar.divider()
+    with st.sidebar.expander("Glossary — What do these terms mean?"):
+        st.markdown("""
+        **Takt Time** — How often a customer needs one unit. If you sell 100 units in 8 hours, takt time is 4.8 mins.
+
+        **OEE** — Overall Equipment Effectiveness. Out of all the time your machine could run, how much is actually producing good products?
+
+        **Bottleneck** — The slowest station on your line. Everything backs up behind it like a traffic jam.
+
+        **Pareto Analysis** — Which 20% of problems are causing 80% of your headache? Fix those first.
+
+        **RPN Score** — Risk Priority Number. Severity × Occurrence × Detection. High score = fix it now.
+
+        **Benchmark** — What the best companies in your industry are achieving.
+
+        **Lead Time** — Total time from when an order is placed to when it is delivered.
+
+        **Takt Time vs Cycle Time** — Takt time is customer demand rate. Cycle time is how long your process actually takes.
+
+        **Manpower Utilization** — How much of your workers' time is being used productively.
+
+        **Days Inventory Outstanding** — How many days of stock you are sitting on. Lower is better.
+
+        **Forecast Accuracy** — How well you predict what customers will order.
+
+        **Sourcing Flexibility** — If your main supplier disappears, can you get materials elsewhere?
+
+        **ABC Analysis** — A items are high value, manage tightly. B items are medium. C items are low value.
+
+        **Picking Accuracy** — What percentage of orders are picked correctly the first time.
+
+        **PFMEA** — Process Failure Mode and Effects Analysis. A tool to identify and prevent failures before they happen.
+        """)
 
     # Load module
     if st.session_state.analysis_type == "Deep" and st.session_state.category == "Manufacturing":
